@@ -193,14 +193,14 @@ class ResNetLayer(Layer):
         x = self._conv_block_4a(x, train_bn=train_bn)
         for i in range(self._s4_block_count):
             x = self._s4_id_blocks[i](x, train_bn=train_bn)
-            C4 = x
-            # Stage 5
-            if self._stage_5:
-                x = self._conv_block_5a(x, train_bn=train_bn)
-                x = self._id_block_5b(x, train_bn=train_bn)
-                C5 = x = self._id_block_5c(x, train_bn=train_bn)
-            else:
-                C5 = None
+        C4 = x
+        # Stage 5
+        if self._stage_5:
+            x = self._conv_block_5a(x, train_bn=train_bn)
+            x = self._id_block_5b(x, train_bn=train_bn)
+            C5 = x = self._id_block_5c(x, train_bn=train_bn)
+        else:
+            C5 = None
 
         return [C1, C2, C3, C4, C5]
 
