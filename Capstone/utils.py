@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 
 # ## Batch Slicing
@@ -44,7 +45,79 @@ def batch_slice(inputs, graph_fn, batch_size, names=None):
     return result
 
 
-def trim_zeros(boxes, name='trim_zeros'):
+def generate_anchors(scales, ratios, shape, feature_stride, anchor_stride):
+    """
+    scales: 1D array of anchor sizes in pixels. Example: [32, 64, 128]
+    ratios: 1D array of anchor ratios of width/height. Example: [0.5, 1, 2]
+    shape: [height, width] spatial shape of the feature map over which
+            to generate anchors.
+    feature_stride: Stride of the feature map relative to the image in pixels.
+    anchor_stride: Stride of anchors on the feature map. For example, if the
+        value is 2 then generate anchors for every other feature map pixel.
+    """
+    # Get all combinations of scales and ratios
+    scales, ratios = np.meshgrid(np.array(scales), np.array(ratios))
+    scales = scales.flatten()
+    ratios = ratios.flatten()
+
+    # Enumerate heights and widths from scales and ratios
+    heights = scales / np.sqrt(ratios)
+    widths = scales * np.sqrt(ratios)
+
+    # Enumerate shifts in feature space
+    shifts_y = np.arange(0, shape[0], anchor_stride) * feature_stride
+    shifts_x = np.arange(0, shape[1], anchor_stride) * feature_stride
+    shifts_x, shifts_y = np.meshgrid(shifts_x, shifts_y)
+
+    # Enumerate combinations of shifts, widths, and heights
+    box_widths, box_centers_x = np.meshgrid(widths, shifts_x)
+    box_heights, box_centers_y = np.meshgrid(heights, shifts_y)
+
+    # Reshape to get a list of (y, x) and a list of (h, w)
+    box_centers = np.stack(
+        [box_centers_y, box_centers_x], axis=2).reshape([-1, 2])
+    box_sizes = np.stack([box_heights, box_widths], axis=2).reshape([-1, 2])
+
+    # Convert to corner coordinates (y1, x1, y2, x2)
+    boxes = np.concatenate([box_centers - 0.5 * box_sizes,
+                            box_centers + 0.5 * box_sizes], axis=1)
+    return boxes
+
+
+def generate_pyramid_anchors(scales, ratios, feature_shapes, feature_strides, anchor_stride):
+    """Generate anchors at different levels of a feature pyramid. Each scale
+    is associated with a level of the pyramid, but each ratio is used in
+    all levels of the pyramid.
+    Returns:
+    anchors: [N, (y1, x1, y2, x2)]. All generated anchors in one array. Sorted
+        with the same order of the given scales. So, anchors of scale[0] come
+        first, then anchors of scale[1], and so on.
+    """
+    # Anchors
+    # [anchor_count, (y1, x1, y2, x2)]
+    anchors = []
+    for i in range(len(scales)):
+        anchors.append(generate_anchors(scales[i], ratios, feature_shapes[i],
+                                        feature_strides[i], anchor_stride))
+    return np.concatenate(anchors, axis=0)
+
+
+def norm_boxes(boxes, shape):
+    """Converts boxes from pixel coordinates to normalized coordinates.
+    boxes: [N, (y1, x1, y2, x2)] in pixel coordinates
+    shape: [..., (height, width)] in pixels
+    Note: In pixel coordinates (y2, x2) is outside the box. But in normalized
+    coordinates it's inside the box.
+    Returns:
+        [N, (y1, x1, y2, x2)] in normalized coordinates
+    """
+    h, w = shape
+    scale = np.array([h - 1, w - 1, h - 1, w - 1])
+    shift = np.array([0, 0, 1, 1])
+    return np.divide((boxes - shift), scale).astype(np.float32)
+
+
+def trim_zeros(boxes):
     """
     Often boxes are represented with tensors of shape [batch, N, 4] and
     are padded with zeros. This removes zero boxes.
@@ -57,6 +130,53 @@ def trim_zeros(boxes, name='trim_zeros'):
     non_zeros = tf.cast(tf.reduce_sum(tf.abs(boxes), axis=2), tf.bool)
     boxes = tf.ragged.boolean_mask(boxes, non_zeros)
     return boxes, non_zeros
+
+
+def apply_box_deltas(boxes, deltas):
+    """
+    # Arguments:
+      boxes: [batch, k, (y1, x1, y2, x2)]. boxes to update
+      deltas: [batch, k, (dy, dx, log(dh), log(dw))] refinements to apply
+    """
+
+    # TODO: Convert to bfloat16 for TPU's???
+    # boxes = boxes.astype(np.float32)
+    # Convert to y, x, h, w
+    height = boxes[:, :, 2] - boxes[:, :, 0]
+    width = boxes[:, :, 3] - boxes[:, :, 1]
+    center_y = boxes[:, :, 0] + 0.5 * height
+    center_x = boxes[:, :, 1] + 0.5 * width
+    # Apply deltas
+    center_y += deltas[:, :, 0] * height
+    center_x += deltas[:, :, 1] * width
+    height *= tf.exp(deltas[:, :, 2])
+    width *= tf.exp(deltas[:, :, 3])
+    # Convert back to y1, x1, y2, x2
+    y1 = center_y - 0.5 * height
+    x1 = center_x - 0.5 * width
+    y2 = y1 + height
+    x2 = x1 + width
+    result = tf.stack([y1, x1, y2, x2], axis=2)
+    return result
+
+
+def clip_boxes(boxes, window):
+    """
+    # Arguments:
+      boxes: [batch, k, (y1, x1, y2, x2)]
+      window: (y1, x1, y2, x2)
+    """
+    # Split
+    wy1, wx1, wy2, wx2 = tf.split(window, 4)
+    y1, x1, y2, x2 = tf.split(boxes, 4, axis=2)
+    # Clip
+    y1 = tf.maximum(tf.minimum(y1, wy2), wy1)
+    x1 = tf.maximum(tf.minimum(x1, wx2), wx1)
+    y2 = tf.maximum(tf.minimum(y2, wy2), wy1)
+    x2 = tf.maximum(tf.minimum(x2, wx2), wx1)
+    clipped = tf.concat([y1, x1, y2, x2], axis=2, name='clipped_boxes')
+    clipped.set_shape((clipped.shape[0], clipped.shape[1], 4))
+    return clipped
 
 
 def compute_overlaps(boxes1, boxes2):
@@ -88,3 +208,49 @@ def compute_overlaps(boxes1, boxes2):
     return overlaps
 
 
+def box_refinement(box, gt_box):
+    """Compute refinement needed to transform box to gt_box.
+    box and gt_box are [N, (y1, x1, y2, x2)]
+    """
+    box = tf.cast(box, tf.float32)
+    gt_box = tf.cast(gt_box, tf.float32)
+
+    height = box[:, 2] - box[:, 0]
+    width = box[:, 3] - box[:, 1]
+    center_y = box[:, 0] + 0.5 * height
+    center_x = box[:, 1] + 0.5 * width
+
+    gt_height = gt_box[:, 2] - gt_box[:, 0]
+    gt_width = gt_box[:, 3] - gt_box[:, 1]
+    gt_center_y = gt_box[:, 0] + 0.5 * gt_height
+    gt_center_x = gt_box[:, 1] + 0.5 * gt_width
+
+    dy = (gt_center_y - center_y) / height
+    dx = (gt_center_x - center_x) / width
+    dh = tf.math.log(gt_height / height)
+    dw = tf.math.log(gt_width / width)
+
+    result = tf.stack([dy, dx, dh, dw], axis=1)
+    return result
+
+
+def parse_image_meta(meta):
+    """Parses a tensor that contains image attributes to its components.
+    See compose_image_meta() for more details.
+    meta: [batch, meta length] where meta length depends on NUM_CLASSES
+    Returns a dict of the parsed tensors.
+    """
+    image_id = meta[:, 0]
+    original_image_shape = meta[:, 1:4]
+    image_shape = meta[:, 4:7]
+    window = meta[:, 7:11]  # (y1, x1, y2, x2) window of image in in pixels
+    scale = meta[:, 11]
+    active_class_ids = meta[:, 12:]
+    return {
+        "image_id": image_id,
+        "original_image_shape": original_image_shape,
+        "image_shape": image_shape,
+        "window": window,
+        "scale": scale,
+        "active_class_ids": active_class_ids,
+    }
