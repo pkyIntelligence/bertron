@@ -26,7 +26,7 @@ def dataset_preprocessing(dataset_path, labels_file_path, image_size, image_path
     :param labels_file_path: String, path to the .txt file where classes names are written
     :param image_size: tuple, single image size
     :param image_paths_pickle: String, name of a pickle file where all image paths will be saved
-    :param dtype: data type to return numpy array as
+    :param dtype: dtype, allows customization of returned dtype of arrays
     '''
 
     with open(labels_file_path, 'r') as f:

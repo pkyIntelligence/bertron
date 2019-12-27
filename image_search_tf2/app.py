@@ -12,7 +12,7 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 with tf.device('CPU:0'):
     #Define our model
-    model = tf.keras.models.load_model(os.path.join('saver', 'model_epoch_20'))
+    model = tf.keras.models.load_model(os.path.join('saver', 'model_epoch_10'))
 
 #Load training set vectors
 with open('hamming_train_vectors.pickle', 'rb') as f:

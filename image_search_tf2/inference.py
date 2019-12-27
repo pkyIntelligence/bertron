@@ -3,8 +3,6 @@ import cv2
 from utils.utils import *
 from utils.dataset import image_loader
 
-from model import ImageSearchModel
-
 
 def simple_inference(model,
                      train_set_vectors,
@@ -32,8 +30,8 @@ def simple_inference(model,
         features.append(hist)
 
     color_features = np.vstack(features).T
-    img_input = np.expand_dims(image, axis=0).astype('float32')
-    _, dense_2_features, dense_4_features = model(img_input, training=False)
+
+    _, dense_2_features, dense_4_features = model(image, training=False)
 
     closest_ids = None
     if distance == 'hamming':
