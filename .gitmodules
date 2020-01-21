@@ -1,3 +1,0 @@
-[submodule "Capstone/Mask_RCNN"]
-	path = Capstone/Mask_RCNN
-	url = https://github.com/pkyIntelligence/Mask_RCNN
