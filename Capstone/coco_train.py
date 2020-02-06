@@ -28,6 +28,7 @@ model = BertForPreTrainingLossMask.from_pretrained(
             len_vis_input=100,
             type_vocab_size=6,
         ).to(DEVICE)
+model.load_state_dict(torch.load(os.path.join(MODEL_DIR, 'coco_caption_bert.pt')))
 model.train()
 
 train_ds = PPCocoCaptions(DATA_DIR)
@@ -39,7 +40,7 @@ optimizer.zero_grad()  # probably unnecessary?
 
 
 # Each epoch is kind of like 5 epochs with 5 captions
-for epoch in range(1):
+for epoch in range(3):
     running_loss = 0.0
     for i, data in enumerate(tqdm(train_dl), 0):
         # get the inputs; data is a list of [imgs, captions]
@@ -72,4 +73,4 @@ for epoch in range(1):
             print(f'[{epoch + 1}, {i + 1}] loss: {running_loss/10}')
             running_loss = 0.0
 
-torch.save(model.state_dict(), os.path.join(MODEL_DIR, 'coco_caption_bert.pt'))
+torch.save(model.state_dict(), os.path.join(MODEL_DIR, 'coco_caption_bert2.pt'))
