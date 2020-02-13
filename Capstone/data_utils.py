@@ -16,6 +16,7 @@ class PPCocoCaptions(Dataset):
     def __init__(self, data_dir):
         super().__init__()
         self._data_dir = data_dir
+        # Hacky, fast way to get len because in the data_dir each caption has a file and a directory, thus // 2
         self._len = len(os.listdir(data_dir)) // 2
 
     def __len__(self):
@@ -69,32 +70,37 @@ def get_random_word(vocab_words):
     return vocab_words[i]
 
 
-def get_img_tensors(preds, max_detections=100):
+def get_img_tensors(preds, fc_layer, fc_dim, num_classes, max_detections=100):
     """
     Args:
         preds: predictions from a detectron2 detector, a list of instances
+        fc_layer: 0-indexed layer to pull features from (in prior literature FC6 = 0 (first FC layer), and
+                    FC7 = 1 (2nd FC layer))
+        fc_dim:
 
     Returns:
-        box_features: tensor of box features from the FC7 layer output, shape = (number of regions, fc7-dim)
-        vis_pe: visual positional embedding
+        box_features: tensor of box features from the FC layer output, shape = (number of regions, fc-dim)
+        vis_pe: visual positional embedding, which is bbox + area + box score
         both are end row padded to the max detection limit
     """
     h, w = preds['instances'].image_size
     fields = preds['instances'].get_fields()
 
-    box_features = fields['box_features']
+    fc_box_features = fields['fc_box_features'][:, fc_layer*fc_dim:(fc_layer+1)*fc_dim]
     probs = fields['probs']
     boxes = fields['pred_boxes']
 
-    num_detections = box_features.shape[0]
+    num_detections = fc_box_features.shape[0]
 
     boxes.scale(scale_x=1/w, scale_y=1/h)
     areas = boxes.area().unsqueeze(dim=1)
+    scores = fields['scores'].unsqueeze(dim=1)
 
-    bbox_areas = torch.cat([boxes.tensor, areas], dim=1)
-    vis_pe = torch.cat((F.layer_norm(bbox_areas, [5]), F.layer_norm(probs, [81])), dim=-1)
+    bbox_areas = torch.cat([boxes.tensor, areas, scores], dim=1)
+    #  4 coordinates + 1 bbox area +1 score, +1 for background class
+    vis_pe = torch.cat((F.layer_norm(bbox_areas, [6]), F.layer_norm(probs, [num_classes+1])), dim=-1)
 
-    box_features = F.pad(box_features, [0, 0, 0, max_detections-num_detections])
+    box_features = F.pad(fc_box_features, [0, 0, 0, max_detections-num_detections])
     vis_pe = F.pad(vis_pe, [0, 0, 0, max_detections-num_detections])
 
     return box_features, vis_pe
