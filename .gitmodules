@@ -2,3 +2,6 @@
 	path = detectron2
 	url = https://github.com/pkyIntelligence/detectron2.git
 
+[submodule "VLP"]
+	path = VLP
+	url = https://github.com/pkyIntelligence/VLP.git
