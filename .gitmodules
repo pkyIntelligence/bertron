@@ -1,6 +1,6 @@
 [submodule "Capstone/detectron2"]
-	path = Capstone/detectron2
+	path = detectron2
 	url = https://github.com/pkyIntelligence/detectron2.git
 [submodule "Capstone/transformers"]
-	path = Capstone/transformers
+	path = transformers
 	url = https://github.com/pkyIntelligence/transformers.git
