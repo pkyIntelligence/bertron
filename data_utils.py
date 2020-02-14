@@ -232,13 +232,3 @@ def prepare_bert_caption_inf(indexer, num_detections, max_detections=100, max_in
     attn_mask[b_start:b_end, b_start:b_end] = torch.tril(torch.ones(b_end-b_start, b_end-b_start, dtype=torch.long))
 
     return input_ids, segment_ids, position_ids, attn_mask
-
-
-def detectron_collate(data_list):
-    """
-    Args:
-        data_list: a list of dataset elements to collate
-    Returns:
-        collated list -- each element is the collated version of each sub element of the dataset
-    """
-    return list(zip(*data_list))
