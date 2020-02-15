@@ -106,7 +106,7 @@ class Captioner:
         instances = pred["instances"][:top_n].to(self.cpu_device)
         vis_output = visualizer.draw_instance_predictions(predictions=instances)
 
-        plt.figure(figsize=(5, 10), dpi=200)
+        plt.figure(figsize=(10, 5), dpi=200)
         plt.imshow(vis_output.get_image())
         plt.show()
 
@@ -133,7 +133,7 @@ class Captioner:
             if visualize:
                 self.visualize(img, viz_top_n)
             else:
-                plt.figure(figsize=(5, 10), dpi=200)
+                plt.figure(figsize=(10, 5), dpi=200)
                 plt.imshow(img[:, :, ::-1])
                 plt.show()
 
