@@ -66,7 +66,7 @@ Install pycocotools:
 pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 ```
 
-Clone this repo recursively along with the submodules if you haven't already (you can ignore the failed commit):
+Clone this repo recursively along with the submodules if you haven't already:
 ```
 git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 ```
