@@ -88,7 +88,7 @@ def get_img_tensors(preds, fc_layer, fc_dim, num_classes, max_detections=100):
 
     fc_box_features = fields['fc_box_features'][:, fc_layer*fc_dim:(fc_layer+1)*fc_dim]
     probs = fields['probs']
-    boxes = fields['pred_boxes']
+    boxes = fields['pred_boxes'].clone()
 
     num_detections = fc_box_features.shape[0]
 
