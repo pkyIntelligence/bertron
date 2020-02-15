@@ -26,9 +26,9 @@ bertron is a project to create an end to end neural network which can analyze an
 Please install Cuda Drivers appropriate for your GPU setup: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
 
 Install gcc if you don't have it (gcc --version):
-'''
+```
 sudo apt install gcc
-'''
+```
 
 Create a conda environmnet:
 '''
