@@ -20,6 +20,7 @@ bertron is a project to create an end to end neural network which can analyze an
 - boto3
 - detectron2
 - apex
+- jupyter (to run the notebook)
 
 ### Steps (Conda highly recommended)
 
@@ -47,7 +48,7 @@ conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 
 Install the rest available through conda:
 ```
-conda install matplotlib requests boto3
+conda install matplotlib requests boto3 jupyter
 ```
 
 Install opencv
