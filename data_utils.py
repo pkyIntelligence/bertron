@@ -1,3 +1,4 @@
+import json
 import os
 import pickle as pkl
 from random import randint, shuffle
@@ -7,6 +8,62 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torchvision.datasets import CocoCaptions
+
+from detectron2.data.detection_utils import read_image
+
+
+class CocoCaptionsKarpathyValidImgs(Dataset):
+    """
+    A Dataset which represents the valid jpgs for Karpathy's split on COCO
+    """
+    def __init__(self, data_dir):
+        """
+        args:
+            data_dir: the root to where coco images are stored
+        """
+        super().__init__()
+        self._data_dir = data_dir
+        self.eval_list = []
+        with open(os.path.join(data_dir, 'annotations/dataset_coco.json'), "r", encoding='utf-8') as f_src:
+            img_dat = json.load(f_src)['images']
+            valid_jpgs = json.load(open(os.path.join(data_dir, 'annotations/coco_valid_jpgs.json')))
+            for src in img_dat:
+                if src['split'] == 'val' and (valid_jpgs is None or src['filename'] in valid_jpgs):
+                    src_tk = os.path.join(data_dir, src.get('filepath', 'trainval'), src['filename'])
+                    imgid = int(src['filename'].split('_')[2][:-4])
+                    self.eval_list.append((imgid, src_tk))  # id and path for COCO
+
+        self._len = len(self.eval_list)
+
+    def __len__(self):
+        return self._len
+
+    def __getitem__(self, idx):
+        img_info = self.eval_list[idx]
+        img_npy = read_image(img_info[1], format="BGR")
+
+        return img_info[0], img_npy
+
+
+class DebugCocoCaptionsKarpathyValidImgs(CocoCaptionsKarpathyValidImgs):
+    """
+    modifying some methods to allow easier debugging, but not necessarily very performant
+    """
+    def __getitem__(self, slice_obj):
+        if type(slice_obj) == int:
+            return super().__getitem__(slice_obj)
+        stop = slice_obj.stop
+        start = 0 if slice_obj.start is None else slice_obj.start
+        step = 1 if slice_obj.step is None else slice_obj.step
+        out = []
+        for i in range(start, stop, step):
+            out.append(super().__getitem__(i))
+
+        return out
+
+
+def ccc_karpathy_valid_collate(batch):
+    return list(zip(*batch))
 
 
 class PPCocoCaptions(Dataset):
