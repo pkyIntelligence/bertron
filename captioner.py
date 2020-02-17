@@ -91,12 +91,12 @@ class Captioner:
                 img = np.array(Image.open(BytesIO(response.content)))[:, :, ::-1]
             else:  # Assume it's a file path
                 img = read_image(img, format="BGR")
-            pred = self.detector_predictor([img])
+            pred = self.detector_predictor([img])[0]
         else:  # Assume it's an image object
-            pred = self.detector_predictor([img])
+            pred = self.detector_predictor([img])[0]
 
         self.img_cache = img
-        self.vis_pred_cache = pred[0]
+        self.vis_pred_cache = pred
 
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         img = img[:, :, ::-1]
@@ -127,7 +127,7 @@ class Captioner:
             else:  # Assume file path
                 img = read_image(img_path, format="BGR")
 
-            pred = self.detector_predictor(img)
+            pred = self.detector_predictor([img])[0]
             self.img_cache = img
             self.vis_pred_cache = pred
 
