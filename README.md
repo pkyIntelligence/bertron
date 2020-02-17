@@ -1,6 +1,10 @@
 # bertron
 
-bertron is a project to create an end to end neural network which can analyze an image and describe it in a natural human voice. Currently captioning is complete, please see the [CaptioningDemo](https://github.com/pkyIntelligence/bertron/blob/master/CaptioningDemo.ipynb)
+bertron is a project to create an end to end neural network which can analyze an image and describe it in a natural human voice. Currently captioning is complete, please see the [CaptioningDemo](CaptioningDemo.ipynb)
+
+![example](test_output/detector_output.png)
+
+'A couple of people walking down a street with yellow umbrellas.'
 
 ## Installation
 
