@@ -108,3 +108,64 @@ rm -rf coco_g4_lr1e-6_batch64_scst*
 ```
 
 ### Done!!!
+
+## Validation
+
+### Data Setup
+
+In order to validate we need validation data, we will be using Karpathy's split on COCO for validation.
+I recommend having a central location for your data, mine is ~/Datasets, so all my coco data will be in ~/Datasets/coco, these steps assume you are in this folder.
+Grab the data/annotations (38 GB Total):
+```
+wget http://images.cocodataset.org/zips/train2014.zip
+wget http://images.cocodataset.org/zips/val2014.zip
+wget http://images.cocodataset.org/zips/test2014.zip
+wget http://images.cocodataset.org/zips/test2015.zip
+
+wget http://images.cocodataset.org/annotations/annotations_trainval2014.zip
+wget http://images.cocodataset.org/annotations/image_info_test2014.zip
+wget http://images.cocodataset.org/annotations/image_info_test2015.zip
+
+wget https://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip
+```
+
+unzip the files
+```
+unzip '*.zip'
+```
+
+move the Karpathy split definition to annotations, you may delete the flickr ones for now, leaving them will do no harm:
+```
+mv dataset_coco.json annotations
+rm dataset_flickr*  # optional
+```
+
+The list of coco images specifically for validation under the Karpathy split is included within this repository under coco/annotations/coco_valid_jpgs.json, copy it to the coco annotations folder:
+```
+export BERTRON_ROOT=~/git/bertron  # Change as appropriate for your setup
+cp $BERTRON_ROOT/coco/annotations/coco_valid_jpgs.json annotations
+```
+
+Optionally, clean up the remaining zip files if you need the space
+```
+rm *.zip
+```
+
+That's it, assuming installation was also done correctly, to run validation just go to your bertron root and run the validate_coco_captions.py script (Takes about 30 minutes on an GeForce RTX 2080 Ti):
+```
+cd $BERTRON_ROOT
+python validate_coco_captions.py \
+    --detector_config detectron2/configs/COCO-Detection/faster_rcnn_X_101_64x4d_FPN_2x_vlp.yaml \
+    --detector_weights model_weights/detectron/e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl \
+    --decoder_config VLP/configs/bert_for_captioning.json \
+    --decoder_weights model_weights/bert/model.19.bin \
+    --object_vocab vocab/objects_vocab.txt \
+    --coco_root ~/Datasets/coco \  # Change to your coco root as approriate
+    --coco_data_info annotations/dataset_coco.json \
+    --coco_ann_file annotations/captions_val2014.json \
+    --valid_jpgs_file annotations/coco_valid_jpgs.json \
+    --batch_size 4 \  # The model is quite large for GPU RAM, you may need to reduce if you run out of memory
+    --dl_workers 4  # Should at least be the number of cores your CPU has, if GPU util < 100%, try increasing
+```
+
+results are saved under $BERTRON_ROOT/eval_results/0_val.json, please see the Validation jupyter notebook to see how an example run looks like
