@@ -151,8 +151,10 @@ Optionally, clean up the remaining zip files if you need the space
 rm *.zip
 ```
 
-That's it, assuming installation was also done correctly, to run validation just go to your bertron root and run the validate_coco_captions.py script (Takes about 30 minutes on an GeForce RTX 2080 Ti):
+That's it, assuming installation was also done correctly, activate the environment you installed bertron to, go to your bertron root and run the validate_coco_captions.py script (Takes about 30 minutes on an GeForce RTX 2080 Ti):
 ```
+conda activate bertron
+
 cd $BERTRON_ROOT
 python validate_coco_captions.py \
     --detector_config detectron2/configs/COCO-Detection/faster_rcnn_X_101_64x4d_FPN_2x_vlp.yaml \
@@ -168,4 +170,10 @@ python validate_coco_captions.py \
     --dl_workers 4  # Should at least be the number of cores your CPU has, if GPU util < 100%, try increasing
 ```
 
-results are saved under $BERTRON_ROOT/eval_results/0_val.json, please see the Validation jupyter notebook to see how an example run looks like
+results are saved under $BERTRON_ROOT/eval_results/0_val.json
+
+Current results with these weights are:
+|        | BLEU 1 | BLEU 2 | BLEU 3 | BLEU 4 | METEOR | ROUGE_L | CIDEr | SPICE |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------- | ----- | ----- |
+|Scores: | 0.654  | 0.478  | 0.338  | 0.237  | 0.230  | 0.494   | 0.763 | 0.159 |
+
