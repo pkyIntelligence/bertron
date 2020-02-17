@@ -20,6 +20,7 @@ bertron is a project to create an end to end neural network which can analyze an
 - boto3
 - detectron2
 - apex
+- pycocoevalcap (for evaluation)
 - jupyter (to run the notebook)
 
 ### Steps (Conda highly recommended)
@@ -66,6 +67,11 @@ Install pycocotools:
 pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 ```
 
+Install pycocoevalcap (for evaluation):
+```
+pip install git+https://github.com/flauted/coco-caption.git@python23
+```
+
 Clone this repo recursively along with the submodules if you haven't already:
 ```
 git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
@@ -86,7 +92,7 @@ pip install -v --no-cache-dir --global-option="--pyprof" --global-option="--cpp_
 cd ..
 ```
 
-Download pretrained model weights
+Download pretrained model weights (1.7 GB Total)
 ```
 cd bertron
 wget -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212014&authkey=AAHgqN3Y-LXcBvU"
