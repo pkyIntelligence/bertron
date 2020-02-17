@@ -173,7 +173,7 @@ python validate_coco_captions.py \
 results are saved under $BERTRON_ROOT/eval_results/0_val.json
 
 Current results with these weights are:
- | BLEU 1 | BLEU 2 | BLEU 3 | BLEU 4 | METEOR | ROUGE_L | CIDEr | SPICE
---- | --- | --- | --- | --- | --- | --- | --- | ---
-Scores: | 0.654 | 0.478 | 0.338 | 0.237 | 0.230 | 0.494 | 0.763 | 0.159
+|        | BLEU 1 | BLEU 2 | BLEU 3 | BLEU 4 | METEOR | ROUGE_L | CIDEr | SPICE |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------- | ----- | ----- |
+|Scores: | 0.654  | 0.478  | 0.338  | 0.237  | 0.230  | 0.494   | 0.763 | 0.159 |
 
