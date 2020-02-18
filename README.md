@@ -1,6 +1,10 @@
 # bertron
 
-bertron is a project to create an end to end neural network which can analyze an image and describe it in a natural human voice. Currently captioning is complete, please see the [CaptioningDemo](https://github.com/pkyIntelligence/bertron/blob/master/CaptioningDemo.ipynb)
+bertron is a project to create an end to end neural network which can analyze an image and describe it in a natural human voice. Currently captioning is complete, please see the [CaptioningDemo](CaptioningDemo.ipynb)
+
+![example](test_output/detector_output.png)
+
+'A couple of people walking down a street with yellow umbrellas.'
 
 ## Installation
 
@@ -177,3 +181,11 @@ Current results with these weights are:
 | ------ | ------ | ------ | ------ | ------ | ------ | ------- | ----- | ----- |
 |Scores: | 0.654  | 0.478  | 0.338  | 0.237  | 0.230  | 0.494   | 0.763 | 0.159 |
 
+
+## Acknowledgement
+- Pretrained weights and most code started with https://github.com/LuoweiZhou/VLP
+- Detectron2 for detector base: https://github.com/facebookresearch/detectron2
+- Bottom-Up Top-Down Attention for general architecture and vocab: https://github.com/peteanderson80/bottom-up-attention
+- bert and transformers: https://github.com/huggingface/transformers
+
+And of course all the open source code and research that these all are built on as well.
