@@ -11,11 +11,11 @@ bertron is a project to create an end to end neural network which can analyze an
 ## Installation
 
 ### Requirements
-- An NVIDIA GPU
+- An NVIDIA GPU with at least 5GB VRAM
 - Linux (Tested on Ubuntu 18.04)
 - Cuda Drivers
 - gcc & g++ ≥ 4.9
-- Python
+- Python=3.7
 - PyTorch, torchvision, and cudatoolkit
 - matplotlib
 - requests
@@ -26,6 +26,13 @@ bertron is a project to create an end to end neural network which can analyze an
 - boto3
 - detectron2
 - apex
+- tensorflow=1.15 
+- numpy=1.13.3 
+- inflect=0.2.5 
+- librosa=0.6.0 
+- scipy=1.0.0 
+- unidecode=1.0.22 
+- pillow=6.2.2
 - pycocoevalcap (for evaluation)
 - jupyter (to run the notebook)
 
@@ -33,14 +40,19 @@ bertron is a project to create an end to end neural network which can analyze an
 
 Please install Cuda Drivers appropriate for your GPU setup: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
 
-Install gcc if you don't have it (gcc --version):
+Install gcc if you don't have it (gcc --version), this will install it for your entire system:
 ```
 sudo apt install gcc
 ```
 
+Clone this repo recursively along with the submodules if you haven't already, and pull updates:
+```
+git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
+```
+
 Create a conda environmnet:
 ```
-conda create -n bertron python
+conda create -n bertron python=3.7
 ```
 
 Enter your new environment:
@@ -48,46 +60,29 @@ Enter your new environment:
 conda activate bertron
 ```
 
+Install conda packages:
+```
+conda install matplotlib requests boto3 jupyter tensorflow=1.15 numpy inflect scipy unidecode
+```
+
+Install pip packages:
+```
+pip install validators cython opencv-python librosa
+```
+
 Install pytorch, torchvision, and cudatoolkit
 ```
 conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 ```
 
-Install the rest available through conda:
-```
-conda install matplotlib requests boto3 jupyter
-```
-
-Install opencv
-```
-conda install -c conda-forge opencv
-```
-
-Install the rest available through pip:
-```
-pip install validators cython
-```
-
 Install pycocotools:
 ```
-pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 ```
 
 Install pycocoevalcap (for evaluation):
 ```
 pip install git+https://github.com/flauted/coco-caption.git@python23
-```
-
-Clone this repo recursively along with the submodules if you haven't already:
-```
-git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
-```
-
-Install this version of detectron2
-```
-cd bertron/detectron2
-pip install -e .
-cd ../..
 ```
 
 Install apex
@@ -98,19 +93,38 @@ pip install -v --no-cache-dir --global-option="--pyprof" --global-option="--cpp_
 cd ..
 ```
 
-Download pretrained model weights (1.7 GB Total)
+Install this version of detectron2
+```
+cd bertron/detectron2
+pip install -e .
+cd ../..
+```
+
+Install tacotron2
+```
+cd bertron/tacotron2
+sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt  # Update .wav paths
+cd ../..
+```
+
+Download pretrained model weights (2.4 GB Total)
 ```
 cd bertron
 wget -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212014&authkey=AAHgqN3Y-LXcBvU"
 wget -O coco_g4_lr1e-6_batch64_scst.tar.gz "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212027&authkey=ACM1UXlFxgfWyt0"
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA" -O tacotron2_statedict.pt && rm -rf /tmp/cookies.txt
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx" -O waveglow_256channels_ljs_v2.pt && rm -rf /tmp/cookies.txt
 ```
 
-Move weights and clean up
+Move weights, convert and clean up
 ```
 mv e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl model_weights/detectron
 tar -xf coco_g4_lr1e-6_batch64_scst.tar.gz
 mv coco_g4_lr1e-6_batch64_scst/model.19.bin model_weights/bert
 rm -rf coco_g4_lr1e-6_batch64_scst*
+mv tacotron2_statedict.pt model_weights/tacotron2
+python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt
+rm waveglow_256channels_ljs_v2.pt
 ```
 
 ### Done!!!
