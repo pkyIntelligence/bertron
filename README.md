@@ -50,7 +50,7 @@ Clone this repo recursively along with the submodules if you haven't already, an
 git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 ```
 
-Create a conda environmnet:
+Create a conda environment:
 ```
 conda create -n bertron python=3.7
 ```
@@ -125,6 +125,11 @@ rm -rf coco_g4_lr1e-6_batch64_scst*
 mv tacotron2_statedict.pt model_weights/tacotron2
 python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt
 rm waveglow_256channels_ljs_v2.pt
+```
+
+Try it out
+```
+jupyter notebook BertronDemo.ipynb
 ```
 
 ### Done!!!
