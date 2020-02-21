@@ -27,11 +27,11 @@ bertron is a project to create an end to end neural network which can analyze an
 - detectron2
 - apex
 - tensorflow=1.15 
-- numpy=1.13.3 
-- inflect=0.2.5 
-- librosa=0.6.0 
-- scipy=1.0.0 
-- unidecode=1.0.22 
+- numpy
+- inflect
+- librosa
+- scipy
+- unidecode
 - pillow=6.2.2
 - pycocoevalcap (for evaluation)
 - jupyter (to run the notebook)
@@ -50,7 +50,7 @@ Clone this repo recursively along with the submodules if you haven't already, an
 git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 ```
 
-Create a conda environmnet:
+Create a conda environment:
 ```
 conda create -n bertron python=3.7
 ```
@@ -127,9 +127,14 @@ python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_
 rm waveglow_256channels_ljs_v2.pt
 ```
 
+Try it out
+```
+jupyter notebook BertronDemo.ipynb
+```
+
 ### Done!!!
 
-## Validation
+## Validation (For captions only)
 
 ### Data Setup
 
