@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import validators
 from PIL import Image
 import requests
@@ -113,8 +112,7 @@ class Captioner:
         """
         inference only for now
         args:
-            img_path: path or url to the image to caption, if a list assume call will only run in batch
-                        mode and thus there will be no visualization regardless of flag.
+            img_path: path or url to the image to caption
             visualize: Do you want to show the detector output? (makes things slightly slower)
             viz_top_n: if visualize is True, this is how many top scoring detections will be visualized, otherwise
                         it is ignored, captioning will still use top 100 regardless of this value.

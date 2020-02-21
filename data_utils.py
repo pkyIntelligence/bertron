@@ -1,4 +1,5 @@
 import json
+import matplotlib.pyplot as plt
 import os
 import pickle as pkl
 from random import randint, shuffle
@@ -289,3 +290,9 @@ def prepare_bert_caption_inf(indexer, num_detections, max_detections=100, max_in
     attn_mask[b_start:b_end, b_start:b_end] = torch.tril(torch.ones(b_end-b_start, b_end-b_start, dtype=torch.long))
 
     return input_ids, segment_ids, position_ids, attn_mask
+
+def plot_data(data, figsize=(16, 4)):
+    fig, axes = plt.subplots(1, len(data), figsize=figsize)
+    for i in range(len(data)):
+        axes[i].imshow(data[i], aspect='auto', origin='bottom',
+                       interpolation='none')
