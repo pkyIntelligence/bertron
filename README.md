@@ -187,12 +187,16 @@ python validate_coco_captions.py \
     --decoder_config VLP/configs/bert_for_captioning.json \
     --decoder_weights model_weights/bert/model.19.bin \
     --object_vocab vocab/objects_vocab.txt \
-    --coco_root ~/Datasets/coco \  # Change to your coco root as approriate
+    --coco_root ~/Datasets/coco \
     --coco_data_info annotations/dataset_coco.json \
     --coco_ann_file annotations/captions_val2014.json \
     --valid_jpgs_file annotations/coco_valid_jpgs.json \
-    --batch_size 4 \  # The model is quite large for GPU RAM, you may need to reduce if you run out of memory
-    --dl_workers 4  # Should at least be the number of cores your CPU has, if GPU util < 100%, try increasing
+    --batch_size 4 \
+    --dl_workers 4
+    
+# Change to your coco root as approriate
+# The model is quite large for GPU RAM, you may need to reduce batch_size if you run out of memory
+# dl_workers hould at least be the number of cores your CPU has, if GPU util < 100%, try increasing
 ```
 
 results are saved under $BERTRON_ROOT/eval_results/0_val.json
