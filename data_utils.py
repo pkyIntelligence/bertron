@@ -2,15 +2,18 @@ import json
 import matplotlib.pyplot as plt
 import os
 import pickle as pkl
+import h5py
 from random import randint, shuffle
 from random import random as rand
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, IterableDataset
 from torchvision.datasets import CocoCaptions
 
 from detectron2.data.detection_utils import read_image
+
+from gcp_file_handler import GCPFileHandler
 
 
 class CocoCaptionsKarpathyValidImgs(Dataset):
@@ -67,43 +70,70 @@ def ccc_karpathy_valid_collate(batch):
     return list(zip(*batch))
 
 
-class PPCocoCaptions(Dataset):
+class PPCocoCaptions(IterableDataset):
     """
-    Preprocessed Coco Captions, uses preprocessed data to increase GPU utilization
+    Preprocessed Coco Captions, uses preprocessed data from the cloud
     """
-    def __init__(self, data_dir):
+    def __init__(self, data_bucket, dataset_root, auth_key_file):
         super().__init__()
-        self._data_dir = data_dir
-        # Hacky, fast way to get len because in the data_dir each caption has a file and a directory, thus // 2
-        self._len = len(os.listdir(data_dir)) // 2
+        self.data_bucket = data_bucket
+        self.dataset_root = dataset_root
+        self.auth_key_file = auth_key_file
+        # create annotations indexed by the final 3 numbers of the filename as preprocessed features are arranged in
+        # the cloud files that way
+        self.anns = {f"{i:03}": [] for i in range(1000)}
+        with GCPFileHandler(bucket_name=data_bucket,
+                            source_blob_name=dataset_root + "/annotations/dataset_coco.json",
+                            destination_file_name="tmp_annotations.json",
+                            auth_key_file=auth_key_file) as gcp_ann_file, \
+            GCPFileHandler(bucket_name=data_bucket,
+                            source_blob_name=dataset_root + "/annotations/coco_valid_jpgs.json",
+                            destination_file_name="tmp_valid_jpgs.json",
+                            auth_key_file=auth_key_file) as gcp_valid_file:
+            with open(gcp_ann_file.filename, 'r', encoding='utf-8') as ann_file, \
+                open(gcp_valid_file.filename, 'r', encoding='utf-8') as valid_file:
 
-    def __len__(self):
-        return self._len
+                ann_list = json.load(ann_file)['images']
+                valid_jpgs = json.load(valid_file)
 
-    def __getitem__(self, idx):
-        with open(os.path.join(self._data_dir, f'vis_feat_pe_{idx:06}.pkl'), 'rb') as vis_f:
-            vis_feats = pkl.load(vis_f)
-            vis_pe = pkl.load(vis_f)
+                for ann in ann_list:
+                    if ann['filename'] in valid_jpgs.keys():
+                        self.anns[ann['filename'].split('.')[0][-3:]].append(ann)
 
-        #vis_tensors = {'vis_feats': vis_feats, 'vis_pe': vis_pe}
-        vis_tensors = [vis_feats, vis_pe]
+        self.bbox_file = GCPFileHandler(bucket_name=self.data_bucket,
+                            source_blob_name=self.dataset_root + "/region_feat_gvd_wo_bgd/coco_detection_vg_thresh0.2_feat_gvd_checkpoint_trainvaltest.h5",
+                            destination_file_name="tmp_bbox.h5",
+                            auth_key_file=self.auth_key_file)
+        self.bbox_filename = "tmp_bbox.h5"
 
-        captions_tensors = []
-        for j in range(5):
-            with open(os.path.join(self._data_dir, f'vis_feat_pe_{idx:06}', f'caption_{j:02}.pkl'), 'rb') as cap_f:
-                input_ids = pkl.load(cap_f)
-                segment_ids = pkl.load(cap_f)
-                attn_mask = pkl.load(cap_f)
-                masked_ids = pkl.load(cap_f)
-                masked_pos = pkl.load(cap_f)
-                masked_weights = pkl.load(cap_f)
+    def __iter__(self):
+        worker_info = torch.utils.data.get_worker_info()
+        my_idxs = range(worker_info.id, 1000, worker_info.num_workers)
+        for idx in my_idxs:
+            key = f"{idx:03}"
+            ann_list = self.anns[key]
+            with GCPFileHandler(bucket_name=self.data_bucket,
+                                source_blob_name=self.dataset_root + f"/region_feat_gvd_wo_bgd/feat_cls_1000/coco_detection_vg_100dets_gvd_checkpoint_trainval_feat{key}.h5",
+                                destination_file_name=f"tmp_feat{key}.h5",
+                                auth_key_file=self.auth_key_file) as feat_file, \
+                 GCPFileHandler(bucket_name=self.data_bucket,
+                                source_blob_name=self.dataset_root + f"/region_feat_gvd_wo_bgd/feat_cls_1000/coco_detection_vg_100dets_gvd_checkpoint_trainval_cls{key}.h5",
+                                destination_file_name=f"tmp_cls{key}.h5",
+                                auth_key_file=self.auth_key_file) as cls_file:
+                with h5py.File(feat_file.filename, 'r') as feat_h5_file, \
+                        h5py.File(cls_file.filename, 'r') as cls_h5_file, \
+                        h5py.File(self.bbox_filename, 'r') as bbox_h5_file:
+                    for ann in ann_list:
+                        img_name = ann['filename'].split('.')[0]
+                        feats = feat_h5_file[img_name][:]
+                        cls_probs = cls_h5_file[img_name][:]
+                        bbox_preds = bbox_h5_file[img_name][:]
 
-            #captions_tensors.append({'input_ids': input_ids, 'segment_ids': segment_ids, 'attn_mask': attn_mask,
-            #                         'masked_ids': masked_ids, 'masked_pos': masked_pos,
-            #                         'masked_weights': masked_weights})
-            captions_tensors.append([input_ids, segment_ids, attn_mask, masked_ids, masked_pos, masked_weights])
+                        for sent in ann['sentences']:
+                            yield feats, bbox_preds, cls_probs, sent
 
-        return vis_tensors, captions_tensors
+    def __del__(self):
+        self.bbox_h5_file.close()
 
 
 class DebugCocoCaptions(CocoCaptions):
@@ -163,6 +193,37 @@ def get_img_tensors(preds, fc_layer, fc_dim, num_classes, max_detections=100):
 
     return box_features, vis_pe
 
+
+def prep_vis_pe(bbox_preds, cls_probs):
+    """
+    Args:
+        bbox_preds: raw pre-processed bbox predictions from detector, shape = (batch, detections, 6)
+        cls_probs: raw pre-processed class probabilities from detector, shape = (batch, detections, num classes + 1)
+
+    Returns:
+        vis_pe: visual positional embedding, which is norm bbox + norm area + box score
+            shape = (batch, detections, 6)
+    """
+    batch_size = bbox_preds.shape[0]
+    num_detections = bbox_preds.shape[1]
+    max_x1s, _ = torch.max(bbox_preds[:, :, 0], dim=1)
+    max_x2s, _ = torch.max(bbox_preds[:, :, 2], dim=1)
+    max_y1s, _ = torch.max(bbox_preds[:, :, 1], dim=1)
+    max_y2s, _ = torch.max(bbox_preds[:, :, 3], dim=1)
+    w_ests = torch.max(max_x1s, max_x2s)*1.+1e-5
+    h_ests = torch.max(max_y1s, max_y2s)*1.+1e-5
+    bbox_preds[:, :, [0, 2]] = torch.div(bbox_preds[:, :, [0, 2]], w_ests.unsqueeze(1).unsqueeze(2))
+    bbox_preds[:, :, [1, 3]] = torch.div(bbox_preds[:, :, [1, 3]], h_ests.unsqueeze(1).unsqueeze(2))
+
+    rel_area = (bbox_preds[:, :, 3]-bbox_preds[:, :, 1])*(bbox_preds[:, :, 2]-bbox_preds[:, :, 0])
+    rel_area.clamp_(0)
+
+    vis_pe = torch.cat((bbox_preds[:, :, :4],
+                        rel_area.view(batch_size, num_detections, 1),
+                        bbox_preds[:, :, 5:]), dim=-1)
+    vis_pe = torch.cat((F.layer_norm(vis_pe, [6]), F.layer_norm(cls_probs, [1601])), dim=-1)
+
+    return vis_pe
 
 def prepare_bert_caption_train(tokenizer, num_detections, caption, max_input_len=170, max_n_mask=10,
                                mask_prob=0.15):
