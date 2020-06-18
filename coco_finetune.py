@@ -1,5 +1,7 @@
 from tqdm import tqdm
 import argparse
+from datetime import datetime
+import logging
 import os
 import torch
 
@@ -58,6 +60,17 @@ def main():
 
     args = parser.parse_args()
 
+    # Setting up logging
+    logger = logging.getLogger(__file__)
+    logger.setLevel(logging.INFO)
+    if not os.path.isdir("logging"):
+        os.mkdir("logging")
+    dt_format_string = "%Y-%m-%d_%H%M%S.%f"
+    fh = logging.FileHandler(f"logging/{__file__}_{datetime.now().strftime(dt_format_string)}.log")
+    formatter = logging.Formatter("%(asctime)s %(levelname)s:%(message)s")
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
     device = torch.device(args.device_str)
     model_dir = '/'.join(args.model_path.split('/')[:-1])
 
@@ -73,6 +86,7 @@ def main():
                                                        len_vis_input=args.num_detections).to(device)
 
     model.train()
+    logger.info("Bert Model loaded")
 
     train_ds = PPCocoCaptions(data_bucket=args.gcp_bucket,
                               dataset_root=args.coco_root,
@@ -85,6 +99,7 @@ def main():
     optimizer = Adam(params=model.parameters(), lr=3e-4, betas=(0.9, 0.999), eps=1e-6, weight_decay=0.01)
 
     for epoch in range(args.epochs):
+        logger.info(f"Epoch {epoch} started")
         # Each image has 5 sentences, each sentence is an example
         running_loss = 0
 
@@ -126,7 +141,6 @@ def main():
             loss_tuple = model(vis_feats=feats, vis_pe=vis_pe, input_ids=batched_input_ids,
                                token_type_ids=batched_segment_ids, attention_mask=batched_attn_mask,
                                masked_lm_labels=batched_masked_ids, next_sentence_label=-1,
-                               # poor practice but prefer not to change for now
                                masked_pos=batched_masked_pos, masked_weights=batched_masked_weights,
                                task_idx=3, drop_worst_ratio=0.2)
             masked_lm_loss, pretext_loss_deprecated, ans_loss = loss_tuple
@@ -143,6 +157,7 @@ def main():
                 running_loss = 0.0
 
             if i % args.save_rate == (args.save_rate-1):
+                logger.info(f"Saving Model in epoch {epoch} and iteration {i}")
                 torch.save(model.state_dict(), os.path.join(model_dir, f"coco_bert_{(i+1):03}.pt"))
 
     torch.save(model.state_dict(), os.path.join(model_dir, "coco_bert_final.pt"))

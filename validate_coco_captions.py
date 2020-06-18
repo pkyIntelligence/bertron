@@ -26,7 +26,7 @@ python validate_coco_captions.py \
     --coco_ann_file annotations/captions_val2014.json \
     --valid_jpgs_file annotations/coco_valid_jpgs.json \
     --batch_size 4 \
-    --dl_workers 8
+    --dl_workers 4
 """
 
 

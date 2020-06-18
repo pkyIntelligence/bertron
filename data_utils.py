@@ -1,7 +1,6 @@
 import json
 import matplotlib.pyplot as plt
 import os
-import pickle as pkl
 import h5py
 from random import randint, shuffle
 from random import random as rand
@@ -164,7 +163,7 @@ def get_img_tensors(preds, fc_layer, fc_dim, num_classes, max_detections=100):
         preds: predictions from a detectron2 detector, a list of instances
         fc_layer: 0-indexed layer to pull features from (in prior literature FC6 = 0 (first FC layer), and
                     FC7 = 1 (2nd FC layer))
-        fc_dim:
+        fc_dim: the dimensionality of the flattened vector (usually 2048)
 
     Returns:
         box_features: tensor of box features from the FC layer output, shape = (number of regions, fc-dim)
@@ -202,10 +201,11 @@ def prep_vis_pe(bbox_preds, cls_probs):
 
     Returns:
         vis_pe: visual positional embedding, which is norm bbox + norm area + box score
-            shape = (batch, detections, 6)
+            shape = (batch, detections, num_classes + 6 + 1)
     """
     batch_size = bbox_preds.shape[0]
     num_detections = bbox_preds.shape[1]
+    num_classes = cls_probs.shape[2]-1
     max_x1s, _ = torch.max(bbox_preds[:, :, 0], dim=1)
     max_x2s, _ = torch.max(bbox_preds[:, :, 2], dim=1)
     max_y1s, _ = torch.max(bbox_preds[:, :, 1], dim=1)
@@ -221,9 +221,10 @@ def prep_vis_pe(bbox_preds, cls_probs):
     vis_pe = torch.cat((bbox_preds[:, :, :4],
                         rel_area.view(batch_size, num_detections, 1),
                         bbox_preds[:, :, 5:]), dim=-1)
-    vis_pe = torch.cat((F.layer_norm(vis_pe, [6]), F.layer_norm(cls_probs, [1601])), dim=-1)
+    vis_pe = torch.cat((F.layer_norm(vis_pe, [6]), F.layer_norm(cls_probs, [num_classes+1])), dim=-1)
 
     return vis_pe
+
 
 def prepare_bert_caption_train(tokenizer, num_detections, caption, max_input_len=170, max_n_mask=10,
                                mask_prob=0.15):
