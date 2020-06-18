@@ -132,6 +132,17 @@ Try it out
 jupyter notebook BertronDemo.ipynb
 ```
 
+Simple Script to load a bertron and produce a wav file from an image url:
+```
+python cmd_line_test.py config.json http://farm9.staticflickr.com/8527/8636833960_10e0fe2bac_z.jpg
+```
+
+This will produce a file called cmd_line_output.wav, you can play it with sox:
+```
+sudo apt-get install sox # if you need it
+play cmd_line_output.wav
+```
+
 ### Done!!!
 
 ## Validation (For captions only)
