@@ -30,11 +30,11 @@ class Bertron:
 
         self.tts = TTS(tacotron_weights_path, waveglow_cfg_path, waveglow_weights_path, sampling_rate)
 
-    def __call__(self, img_path, visualize=False, viz_top_n=100, denoise=True):
+    def __call__(self, img, visualize=False, viz_top_n=100, denoise=True):
         """
         inference only for now
         args:
-            img_path: path or url to the image to caption
+            img: path or url to the image to caption or img array
             visualize: Whether to display intermediary results, (detector output, text, mel spectograms)
             viz_top_n: how many top scoring detector's regions of interest to show
             denoise: whether to applying denoising to the final output
@@ -42,7 +42,6 @@ class Bertron:
 
         with torch.no_grad():
 
-            text = self.captioner(img_path, visualize, viz_top_n)
-            if visualize:
-                print(text)
-            return self.tts(text, visualize, denoise)
+            text, vis_output = self.captioner(img, visualize, viz_top_n)
+            audio, mel_outputs, mel_outputs_postnet, alignments = self.tts(text, denoise)
+            return audio, vis_output, text, mel_outputs, mel_outputs_postnet, alignments

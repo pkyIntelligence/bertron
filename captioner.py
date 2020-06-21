@@ -102,39 +102,36 @@ class Captioner:
         visualizer = SimpleVisualizer(img, self.metadata, self.obj_class_names, instance_mode=ColorMode.IMAGE)
 
         instances = pred["instances"][:top_n].to(self.cpu_device)
-        vis_output = visualizer.draw_instance_predictions(predictions=instances)
+        vis_output = visualizer.draw_instance_predictions(predictions=instances).get_image()
 
-        plt.figure(figsize=(10, 5), dpi=200)
-        plt.imshow(vis_output.get_image())
-        plt.show()
+        return vis_output
 
-    def __call__(self, img_path, visualize=False, viz_top_n=100):
+    def __call__(self, img, visualize=False, viz_top_n=100):
         """
         inference only for now
         args:
-            img_path: path or url to the image to caption
+            img: path or url to the image to caption or img array
             visualize: Do you want to show the detector output? (makes things slightly slower)
             viz_top_n: if visualize is True, this is how many top scoring detections will be visualized, otherwise
                         it is ignored, captioning will still use top 100 regardless of this value.
         """
 
         with torch.no_grad():
-            if validators.url(img_path):
-                response = requests.get(img_path)
-                img = np.array(Image.open(BytesIO(response.content)))[:, :, ::-1]
-            else:  # Assume file path
-                img = read_image(img_path, format="BGR")
+            if isinstance(img, str):
+                if validators.url(img):
+                    response = requests.get(img)
+                    img = np.array(Image.open(BytesIO(response.content)))[:, :, ::-1]
+                else:  # Assume file path
+                    img = read_image(img, format="BGR")
 
             pred = self.detector_predictor([img])[0]
             self.img_cache = img
             self.vis_pred_cache = pred
 
             if visualize:
-                self.visualize(img, viz_top_n)
+                vis_output = self.visualize(img, viz_top_n)
             else:
-                plt.figure(figsize=(10, 5), dpi=200)
-                plt.imshow(img[:, :, ::-1])
-                plt.show()
+                vis_output = img[:, :, ::-1]
 
             vis_feats, vis_pe = get_img_tensors(pred, fc_layer=self.fc_layer, fc_dim=self.fc_dim,
                                                 num_classes=self.num_classes, max_detections=self.max_detections)
@@ -165,7 +162,7 @@ class Captioner:
                         break
                     output_tokens.append(t)
 
-            return self.tokenizer.convert_tokens_to_string(output_tokens)
+            return self.tokenizer.convert_tokens_to_string(output_tokens), vis_output
 
     def forward(self, img_npys):
         """

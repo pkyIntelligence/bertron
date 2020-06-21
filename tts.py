@@ -42,7 +42,7 @@ class TTS:
 
         self.denoiser = Denoiser(self.waveglow)
 
-    def __call__(self, text, visualize=False, denoise=True):
+    def __call__(self, text, denoise=True):
         """
         inference only for now
         args:
@@ -57,14 +57,9 @@ class TTS:
 
             mel_outputs, mel_outputs_postnet, _, alignments = self.tacotron.inference(sequence)
 
-            if visualize:
-                plot_data((mel_outputs.float().data.cpu().numpy()[0],
-                           mel_outputs_postnet.float().data.cpu().numpy()[0],
-                           alignments.float().data.cpu().numpy()[0].T))
-
             audio = self.waveglow.infer(mel_outputs_postnet, sigma=0.666)
 
             if denoise:
                 audio = self.denoiser(audio, strength=0.01)[:, 0]
 
-            return audio
+            return audio, mel_outputs, mel_outputs_postnet, alignments

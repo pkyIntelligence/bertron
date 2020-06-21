@@ -1,39 +1,72 @@
 <!-- 
-    Home page for image to image search demo.
+    Home page for bertron demo.
  -->
 
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Upload</title>
-         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-         <!-- Include bootstrap library -->
-         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <title>bertron</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <!-- Include bootstrap library -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <style>
+            .center {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                width: 50%;
+            }
+            .container {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                width: 85%;
+            }
+            body {
+                text-align:center;
+            }
+        </style>
     </head>
     <body>
-            <!-- Setup simple upload form  -->
-            <form id="upload-form" action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" style="margin-top: 10%;">
-                <div class='container form-group'>
-                <input id="file-uploader" type="file" name="file" accept="image/*">
-                <input type="submit" value="Upload an image" id="upload-button">
-                </div>
-            </form>
+        <!-- Setup bertron input form  -->
+        <form id="input-form" action="{{ url_for('submit') }}" method="POST" style="margin-top: 10%;">
+            <div class="form container">
+                <label for="image_url">Image URL:</label>
+                <input type="text" id="image_url" name="image_url" size="70" value={{current_url}}><br>
+                <label for="visualize">Visualize?</label>
+                <input type="checkbox" id="visualize" name="visualize" value="visualize"
+                    {% if visualize %}checked{% else %}{% endif %}>
+                <label for="top_n">Number of Detections to visualize (100 or less):</label>
+                <input type="number" id="top_n" name="top_n" min="0" max="100" value={{top_n}}>
+                <label for="denoise">Denoise?</label>
+                <input type="checkbox" id="denoise" name="denoise" value="denoise"
+                    {% if denoise %}checked{% else %}{% endif %}><br>
+                <input type="submit" value="Analyze" id="submit_button">
+            </div>
+        </form><br>
+        {% if invalid_url %}
+            <h4>Sorry, your URL is invalid.</h4>
+        {% endif %}
+        {% if unsuccessful_request %}
+            <h4>Sorry, there was an unsuccessful request for that URL.</h4>
+        {% endif %}
+        {% if non_image_url %}
+            <h4>Sorry, that URL could not be interpreted as an image.</h4>
+        {% endif %}
+        {% if generated_audio %}
+            <img src={{url_for('static', filename="image.jpg", time=now)}} class="center"><br>
+            {% if visualize %}
+                <h4>{{caption}}</h4><br>
+                <div class="container">
+                    <img src={{url_for('static', filename="mel_outputs.png", time=now)}}>
+                    <img src={{url_for('static', filename="mel_outputs_postnet.png", time=now)}}>
+                    <img src={{url_for('static', filename="alignments.png", time=now)}}>
+                </div><br>
+            {% endif %}
+            <audio controls>
+                <source src={{url_for('static', filename="audio.wav", time=now)}} type="audio/wav">
+                Your browser does not support the audio element.
+            </audio>
+        {% endif %}
     </body>
-
-    <script>
-
-        $("#file-uploader").change(function(){
-            var file = document.getElementById('file-uploader');
-
-            var extension =  input.files[0].name.substring(input.files[0].name.lastIndexOf('.')+1).toLowerCase()
-
-            if ((extension == 'jpg') || (extension == 'png') || (extension == 'jpeg')){
-                //Do something fun
-            }
-            else{
-                //if user has uploaded wrong format restart file uploader value
-                document.getElementById("file-uploader").value ="";
-            }
-        } );
-    </script>
 </html>
