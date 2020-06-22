@@ -64,7 +64,7 @@ RUN tar -xf coco_g4_lr1e-6_batch64_scst.tar.gz
 RUN mv coco_g4_lr1e-6_batch64_scst/model.19.bin model_weights/bert
 RUN rm -rf coco_g4_lr1e-6_batch64_scst*
 RUN mv tacotron2_statedict.pt model_weights/tacotron2
-RUN /bin/bash -c "source activate bertron && python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt"
+RUN /bin/bash -c "source activate bertron && python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt cpu"
 RUN rm waveglow_256channels_ljs_v2.pt
 
 ENTRYPOINT ["conda", "run", "-n", "bertron", "python", "app.py", "config.json"]
