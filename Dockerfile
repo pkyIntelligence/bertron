@@ -52,7 +52,7 @@ WORKDIR ../..
 
 WORKDIR bertron/tacotron2
 RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
-WORKDIR ../..
+WORKDIR ..
 
 RUN wget -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212014&authkey=AAHgqN3Y-LXcBvU"
 RUN wget -O coco_g4_lr1e-6_batch64_scst.tar.gz "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212027&authkey=ACM1UXlFxgfWyt0"
