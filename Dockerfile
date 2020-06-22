@@ -31,6 +31,9 @@ WORKDIR bertron
 RUN conda env create -f environment.yaml --name bertron
 RUN conda activate bertron
 
+RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
+RUN pip install git+https://github.com/flauted/coco-caption.git@python23
+
 WORKDIR ..
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR apex
