@@ -14,7 +14,7 @@ class TTS:
     """
     A Text to Speech Generator, a mel spectogram generator (tacotron) with a speech generator (waveglow)
     """
-    def __init__(self, tacotron_weights_path, waveglow_cfg_path, waveglow_weights_path, sampling_rate=22050):
+    def __init__(self, tacotron_weights_path, waveglow_cfg_path, waveglow_weights_path, device, sampling_rate=22050):
         """
         args:
             tacotron_weights_path: path to the tacotron weights
@@ -23,10 +23,17 @@ class TTS:
         """
         hparams = create_hparams()
         hparams.sampling_rate = sampling_rate
+        self.device = device
 
         self.tacotron = load_model(hparams)
         self.tacotron.load_state_dict(torch.load(tacotron_weights_path)['state_dict'])
-        self.tacotron.cuda().eval().half()
+
+        if device.type == "cpu":
+            self.tacotron.cpu()
+        else:
+            self.tacotron.half()  # GPU can use handle half
+
+        self.tacotron.eval()
 
         with open(waveglow_cfg_path, "r", encoding='utf-8') as reader:
             text = reader.read()
@@ -35,12 +42,16 @@ class TTS:
                                  wg_cfg['n_early_every'], wg_cfg['n_early_size'], wg_cfg['WN_config'])
 
         self.waveglow.load_state_dict(torch.load(waveglow_weights_path))
-        self.waveglow.cuda().eval().half()
+
+        if device.type == "gpu":
+            self.waveglow.cuda().half()
+
+        self.waveglow.eval()
 
         for k in self.waveglow.convinv:
             k.float()
 
-        self.denoiser = Denoiser(self.waveglow)
+        self.denoiser = Denoiser(self.waveglow, device)
 
     def __call__(self, text, denoise=True):
         """
@@ -53,7 +64,10 @@ class TTS:
 
         with torch.no_grad():
             sequence = np.array(text_to_sequence(text, ['english_cleaners']))[None, :]
-            sequence = torch.autograd.Variable(torch.from_numpy(sequence)).cuda().long()
+            sequence = torch.autograd.Variable(torch.from_numpy(sequence)).long()
+
+            if self.device.type == "gpu":
+                sequence.cuda()
 
             mel_outputs, mel_outputs_postnet, _, alignments = self.tacotron.inference(sequence)
 

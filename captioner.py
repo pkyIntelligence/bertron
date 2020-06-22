@@ -62,7 +62,12 @@ class Captioner:
         self.bert_decoder = BertForSeq2SeqDecoder.from_pretrained(pretrained_model_name=self.bert_cfg,
                                                                   state_dict=bert_state_dict,
                                                                   mask_word_id=mask_word_id,
-                                                                  eos_id=eos_id).to(gpu_device)
+                                                                  eos_id=eos_id)
+
+        if gpu_device:
+            self.bert_decoder.to(gpu_device)
+        else:
+            self.bert_decoder.to(cpu_device)
         del bert_state_dict
 
         self.bert_decoder.eval()
@@ -140,12 +145,20 @@ class Captioner:
                 prepare_bert_caption_inf(self.tokenizer.convert_tokens_to_ids, vis_feats.shape[0],
                                          self.max_detections, self.max_input_len)
 
-            vis_feats = vis_feats.unsqueeze(0).to(self.gpu_device)
-            vis_pe = vis_pe.unsqueeze(0).to(self.gpu_device)
-            input_ids = input_ids.unsqueeze(0).to(self.gpu_device)
-            segment_ids = segment_ids.unsqueeze(0).to(self.gpu_device)
-            position_ids = position_ids.unsqueeze(0).to(self.gpu_device)
-            attn_mask = attn_mask.unsqueeze(0).to(self.gpu_device)
+            vis_feats = vis_feats.unsqueeze(0)
+            vis_pe = vis_pe.unsqueeze(0)
+            input_ids = input_ids.unsqueeze(0)
+            segment_ids = segment_ids.unsqueeze(0)
+            position_ids = position_ids.unsqueeze(0)
+            attn_mask = attn_mask.unsqueeze(0)
+
+            if self.gpu_device:
+                vis_feats.to(self.gpu_device)
+                vis_pe.to(self.gpu_device)
+                input_ids.to(self.gpu_device)
+                segment_ids.to(self.gpu_device)
+                position_ids.to(self.gpu_device)
+                attn_mask.to(self.gpu_device)
 
             traces = self.bert_decoder(vis_feats=vis_feats, vis_pe=vis_pe, input_ids=input_ids,
                                        token_type_ids=segment_ids, position_ids=position_ids, attention_mask=attn_mask,
@@ -187,12 +200,14 @@ class Captioner:
                 prepare_bert_caption_inf(self.tokenizer.convert_tokens_to_ids, vis_feats.shape[0],
                                          self.max_detections, self.max_input_len)
 
-            vis_feats_list.append(vis_feats.unsqueeze(0).to(self.gpu_device))
-            vis_pe_list.append(vis_pe.unsqueeze(0).to(self.gpu_device))
-            input_ids_list.append(input_ids.unsqueeze(0).to(self.gpu_device))
-            segment_ids_list.append(segment_ids.unsqueeze(0).to(self.gpu_device))
-            position_ids_list.append(position_ids.unsqueeze(0).to(self.gpu_device))
-            attn_mask_list.append(attn_mask.unsqueeze(0).to(self.gpu_device))
+            device = self.gpu_device if self.gpu_device else self.cpu_device
+
+            vis_feats_list.append(vis_feats.unsqueeze(0).to(device))
+            vis_pe_list.append(vis_pe.unsqueeze(0).to(device))
+            input_ids_list.append(input_ids.unsqueeze(0).to(device))
+            segment_ids_list.append(segment_ids.unsqueeze(0).to(device))
+            position_ids_list.append(position_ids.unsqueeze(0).to(device))
+            attn_mask_list.append(attn_mask.unsqueeze(0).to(device))
 
         batch_vis_feats = torch.cat(vis_feats_list)
         batch_vis_pe = torch.cat(vis_pe_list)

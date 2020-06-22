@@ -1,5 +1,5 @@
 {
-  "detectron_config_path" : "detectron2/configs/COCO-Detection/faster_rcnn_X_101_64x4d_FPN_2x_vlp.yaml",
+  "detectron_config_path" : "detectron2/configs/COCO-Detection/faster_rcnn_X_101_64x4d_FPN_2x_vlp_cpu.yaml",
   "detectron_weights_path" : "model_weights/detectron/e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl",
   "object_vocab_path" : "vocab/objects_vocab.txt",
   "bert_config_path" : "VLP/configs/bert_for_captioning.json",

@@ -34,7 +34,7 @@ bertron = Bertron(detector_cfg_path=config_json["detectron_config_path"],
                   waveglow_cfg_path=config_json["waveglow_config_path"],
                   waveglow_weights_path=config_json["waveglow_weights_path"],
                   cpu_device=torch.device("cpu"),
-                  gpu_device=torch.device("cuda:0"),
+                  gpu_device=None,
                   sampling_rate=sampling_rate)
 
 # Define Flask app

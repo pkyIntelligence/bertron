@@ -27,8 +27,8 @@ class Bertron:
         """
         self.captioner = Captioner(detector_cfg_path, detector_weights_path, bert_cfg_path, bert_weights_path,
                                    object_vocab_path, cpu_device, gpu_device, fc_layer, max_caption_length)
-
-        self.tts = TTS(tacotron_weights_path, waveglow_cfg_path, waveglow_weights_path, sampling_rate)
+        device = gpu_device if gpu_device else cpu_device
+        self.tts = TTS(tacotron_weights_path, waveglow_cfg_path, waveglow_weights_path, device, sampling_rate)
 
     def __call__(self, img, visualize=False, viz_top_n=100, denoise=True):
         """

@@ -50,11 +50,11 @@ def main(argv):
                       waveglow_cfg_path=config_json["waveglow_config_path"],
                       waveglow_weights_path=config_json["waveglow_weights_path"],
                       cpu_device=torch.device("cpu"),
-                      gpu_device=torch.device("cuda:0"),
+                      gpu_device=None,
                       sampling_rate=config_json["sampling_rate"])
     logger.info("Bertron created successfully")
 
-    audio = bertron(image_URL)
+    audio, _, _, _, _, _ = bertron(image_URL)
     logger.info("Image description successfully converted to Audio")
 
     logger.info("Saving audio")
