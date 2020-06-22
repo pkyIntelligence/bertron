@@ -34,17 +34,17 @@ RUN conda env create -f environment.yaml --name bertron
 RUN echo "source activate $(head -1 environment.yaml | cut -d' ' -f2)" > ~/.bashrc
 ENV PATH /opt/conda/envs/$(head -1 environment.yaml | cut -d' ' -f2)/bin:$PATH
 
-RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
-RUN pip install git+https://github.com/flauted/coco-caption.git@python23
+RUN /bin/bash -c “source activate bertron && pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI”
+RUN /bin/bash -c “source activate bertron && pip install git+https://github.com/flauted/coco-caption.git@python23”
 
 WORKDIR ..
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR apex
-RUN pip install -v --no-cache-dir --global-option="--pyprof" --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+RUN /bin/bash -c “source activate bertron && pip install -v --no-cache-dir --global-option=\"--pyprof\" --global-option=\"--cpp_ext\" --global-option=\"--cuda_ext\" ./”
 WORKDIR ..
 
 WORKDIR bertron/detectron2
-RUN pip install -e .
+RUN /bin/bash -c “source activate bertron && pip install -e ."
 WORKDIR ../..
 
 WORKDIR bertron/tacotron2
@@ -61,8 +61,8 @@ RUN tar -xf coco_g4_lr1e-6_batch64_scst.tar.gz
 RUN mv coco_g4_lr1e-6_batch64_scst/model.19.bin model_weights/bert
 RUN rm -rf coco_g4_lr1e-6_batch64_scst*
 RUN mv tacotron2_statedict.pt model_weights/tacotron2
-RUN python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt
+RUN /bin/bash -c “source activate bertron && python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt"
 RUN rm waveglow_256channels_ljs_v2.pt
 
-CMD python app.py config.json
+ENTRYPOINT ["conda", "run", "-n", "bertron", "python", "app.py", "config.json"]
 
