@@ -43,7 +43,7 @@ RUN /bin/bash -c "source activate bertron && pip install git+https://github.com/
 WORKDIR ..
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR apex
-RUN /bin/bash -c "source activate bertron && pip install -v --no-cache-dir --global-option=\"--pyprof\" --global-option=\"--cpp_ext\" --global-option=\"--cuda_ext\" ./"
+RUN /bin/bash -c "source activate bertron && pip install -v --no-cache-dir --global-option=\"--pyprof\" --global-option=\"--cpp_ext\" ./"
 WORKDIR ..
 
 WORKDIR bertron/detectron2
