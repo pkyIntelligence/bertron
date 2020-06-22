@@ -21,12 +21,29 @@ RUN apt-get install -y curl grep sed dpkg && \
     rm tini.deb && \
     apt-get clean
 
+RUN conda update -n base -c defaults conda
+
 RUN mkdir git
 WORKDIR git
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 
 WORKDIR bertron
 RUN conda env create -f environment.yaml --name bertron
+RUN conda activate bertron
+
+WORKDIR ..
+RUN git clone https://github.com/NVIDIA/apex
+WORKDIR apex
+RUN pip install -v --no-cache-dir --global-option="--pyprof" --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+WORKDIR ..
+
+WORKDIR bertron/detectron2
+RUN pip install -e .
+WORKDIR ../..
+
+WORKDIR bertron/tacotron2
+RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
+WORKDIR ../..
 
 RUN wget -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212014&authkey=AAHgqN3Y-LXcBvU"
 RUN wget -O coco_g4_lr1e-6_batch64_scst.tar.gz "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212027&authkey=ACM1UXlFxgfWyt0"
