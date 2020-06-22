@@ -29,7 +29,10 @@ RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.gi
 
 WORKDIR bertron
 RUN conda env create -f environment.yaml --name bertron
-RUN conda activate bertron
+
+# Pull the environment name out of the environment.yaml
+RUN echo "source activate $(head -1 environment.yaml | cut -d' ' -f2)" > ~/.bashrc
+ENV PATH /opt/conda/envs/$(head -1 environment.yaml | cut -d' ' -f2)/bin:$PATH
 
 RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 RUN pip install git+https://github.com/flauted/coco-caption.git@python23
