@@ -1,5 +1,8 @@
 FROM ubuntu:18.04
 
+RUN apt update
+RUN apt install build-essential
+
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 
