@@ -25,7 +25,7 @@ class TTS:
         hparams.sampling_rate = sampling_rate
         self.device = device
 
-        self.tacotron = load_model(hparams)
+        self.tacotron = load_model(hparams, device)
         self.tacotron.load_state_dict(torch.load(tacotron_weights_path)['state_dict'])
 
         if device.type == "cpu":
