@@ -1,9 +1,9 @@
 FROM ubuntu:18.04
 
 RUN apt update
-RUN apt install -y build-essential git python3-pip libsndfile1
+RUN apt install -y build-essential git python3 python3-pip libsndfile1
 
-RUN python -m pip3 install --upgrade pip setuptools
+RUN pip3 install --upgrade setuptools pip
 
 RUN mkdir git
 WORKDIR git
