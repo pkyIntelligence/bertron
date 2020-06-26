@@ -8,142 +8,28 @@ bertron is a project to create an end to end neural network which can analyze an
 
 ![example_snd](test_output/mel1.png)
 
-## Installation
+## Installation (with Docker)
 
-### Requirements
-- An NVIDIA GPU with at least 5GB VRAM
-- Linux (Tested on Ubuntu 18.04)
-- Cuda Drivers
-- gcc & g++ ≥ 4.9
-- Python=3.7
-- PyTorch, torchvision, and cudatoolkit
-- matplotlib
-- requests
-- validators
-- cython
-- OpenCV
-- pycocotools
-- boto3
-- detectron2
-- apex
-- tensorflow=1.15 
-- numpy
-- inflect
-- librosa
-- scipy
-- unidecode
-- pillow=6.2.2
-- pycocoevalcap (for evaluation)
-- jupyter (to run the notebook)
+currently the Dockerfile is CPU only for inference
 
-### Steps (Conda highly recommended)
-
-Please install Cuda Drivers appropriate for your GPU setup: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
-
-Install gcc if you don't have it (gcc --version), this will install it for your entire system:
+Build the Dockerfile (Use sudo if you need to, this will take about 15 minutes depending on your CPU and network speed):
 ```
-sudo apt install gcc
+docker build -t <tag_name> https://github.com/pkyIntelligence/bertron.git  # Your tag can be anything
 ```
 
-Clone this repo recursively along with the submodules if you haven't already, and pull updates:
+Run the server, name is not required but it makes looking up the ip address of the server easier:
 ```
-git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
-```
-
-Create a conda environment:
-```
-conda create -n bertron python=3.7
+docker run -it --name <container_name> <tag_name>
 ```
 
-Enter your new environment:
+Depending on your exact docker configuration, figure out the ipaddress of the above container, for most people this will show it:
 ```
-conda activate bertron
-```
-
-Install conda packages:
-```
-conda install matplotlib requests boto3 jupyter tensorflow=1.15 numpy inflect scipy unidecode
+docker network inspect bridge  # Then locate your container via your container name above
 ```
 
-Install pip packages:
-```
-pip install validators cython opencv-python librosa
-```
+Enter the ipaddress you see with port 5000 in your browser, it might be something like http://172.17.0.2:5000/
 
-Install pytorch, torchvision, and cudatoolkit
-```
-conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
-```
-
-Install pycocotools:
-```
-pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
-```
-
-Install pycocoevalcap (for evaluation):
-```
-pip install git+https://github.com/flauted/coco-caption.git@python23
-```
-
-Install apex
-```
-git clone https://github.com/NVIDIA/apex
-cd apex
-pip install -v --no-cache-dir --global-option="--pyprof" --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-cd ..
-```
-
-Install this version of detectron2
-```
-cd bertron/detectron2
-pip install -e .
-cd ../..
-```
-
-Install tacotron2
-```
-cd bertron/tacotron2
-sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt  # Update .wav paths
-cd ../..
-```
-
-Download pretrained model weights (2.4 GB Total)
-```
-cd bertron
-wget -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212014&authkey=AAHgqN3Y-LXcBvU"
-wget -O coco_g4_lr1e-6_batch64_scst.tar.gz "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212027&authkey=ACM1UXlFxgfWyt0"
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA" -O tacotron2_statedict.pt && rm -rf /tmp/cookies.txt
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx" -O waveglow_256channels_ljs_v2.pt && rm -rf /tmp/cookies.txt
-```
-
-Move weights, convert and clean up
-```
-mv e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl model_weights/detectron
-tar -xf coco_g4_lr1e-6_batch64_scst.tar.gz
-mv coco_g4_lr1e-6_batch64_scst/model.19.bin model_weights/bert
-rm -rf coco_g4_lr1e-6_batch64_scst*
-mv tacotron2_statedict.pt model_weights/tacotron2
-python tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt
-rm waveglow_256channels_ljs_v2.pt
-```
-
-Try it out
-```
-jupyter notebook BertronDemo.ipynb
-```
-
-Simple Script to load a bertron and produce a wav file from an image url:
-```
-python cmd_line_test.py config.json http://farm9.staticflickr.com/8527/8636833960_10e0fe2bac_z.jpg
-```
-
-This will produce a file called cmd_line_output.wav, you can play it with sox:
-```
-sudo apt-get install sox # if you need it
-play cmd_line_output.wav
-```
-
-### Done!!!
+Inference takes about 10-15 seconds on a CPU. If you would like to install outside of a docker, please follow the steps in the Dockerfile and adjust for your own environment.
 
 ## Validation (For captions only)
 
@@ -189,8 +75,6 @@ rm *.zip
 
 That's it, assuming installation was also done correctly, activate the environment you installed bertron to, go to your bertron root and run the validate_coco_captions.py script (Takes about 30 minutes on an GeForce RTX 2080 Ti):
 ```
-conda activate bertron
-
 cd $BERTRON_ROOT
 python validate_coco_captions.py \
     --detector_config detectron2/configs/COCO-Detection/faster_rcnn_X_101_64x4d_FPN_2x_vlp.yaml \
