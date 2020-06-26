@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 RUN apt update
-RUN apt install -y build-essential git python3 python3-pip libsndfile1
+RUN apt install -y build-essential git python3 python3-pip wget libsndfile1
 
 RUN pip3 install --upgrade setuptools pip
 
@@ -18,7 +18,7 @@ RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR apex
-RUN pip3 install -v --no-cache-dir --global-option=\"--pyprof\" --global-option=\"--cpp_ext\" ./
+RUN pip3 install -v --no-cache-dir ./su
 WORKDIR ..
 
 WORKDIR bertron/detectron2
