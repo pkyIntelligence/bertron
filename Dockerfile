@@ -18,7 +18,7 @@ RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR apex
-RUN pip3 install -v --no-cache-dir ./su
+RUN pip3 install -v --no-cache-dir ./
 WORKDIR ..
 
 WORKDIR bertron/detectron2
