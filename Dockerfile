@@ -8,19 +8,19 @@ WORKDIR git
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 
 WORKDIR bertron
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
-RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
-RUN pip install git+https://github.com/flauted/coco-caption.git@python23
+RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
+RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 
 WORKDIR ..
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR apex
-RUN pip install -v --no-cache-dir --global-option=\"--pyprof\" --global-option=\"--cpp_ext\" ./
+RUN pip3 install -v --no-cache-dir --global-option=\"--pyprof\" --global-option=\"--cpp_ext\" ./
 WORKDIR ..
 
 WORKDIR bertron/detectron2
-RUN pip install -e .
+RUN pip3 install -e .
 WORKDIR ../..
 
 WORKDIR bertron/tacotron2
