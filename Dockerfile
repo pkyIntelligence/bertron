@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 RUN apt update
-RUN apt install -y build-essential git python3 python3-pip wget libsndfile1
+RUN apt install -y build-essential git python3 python3-pip wget libsndfile1 libsm6 libxext6 libxrender-dev
 
 RUN pip3 install --upgrade setuptools pip
 
