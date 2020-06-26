@@ -56,3 +56,5 @@ RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=down
 RUN python3 tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt cpu
 RUN rm waveglow_256channels_ljs_v2.pt
 
+ENTRYPOINT ["python3", "app.py", "config.json"]
+
