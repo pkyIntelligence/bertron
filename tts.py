@@ -26,12 +26,12 @@ class TTS:
         self.device = device
 
         self.tacotron = load_model(hparams, device)
-        self.tacotron.load_state_dict(torch.load(tacotron_weights_path)['state_dict'])
+        self.tacotron.load_state_dict(torch.load(tacotron_weights_path, map_location=device)['state_dict'])
 
         if device.type == "cpu":
             self.tacotron.cpu()
         else:
-            self.tacotron.half()  # GPU can use handle half
+            self.tacotron.half()  # GPU can handle half
 
         self.tacotron.eval()
 
@@ -41,7 +41,7 @@ class TTS:
         self.waveglow = WaveGlow(wg_cfg['n_mel_channels'], wg_cfg['n_flows'], wg_cfg['n_group'],
                                  wg_cfg['n_early_every'], wg_cfg['n_early_size'], wg_cfg['WN_config'])
 
-        self.waveglow.load_state_dict(torch.load(waveglow_weights_path))
+        self.waveglow.load_state_dict(torch.load(waveglow_weights_path, map_location=device))
 
         if device.type == "gpu":
             self.waveglow.cuda().half()
