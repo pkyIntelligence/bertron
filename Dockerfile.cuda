@@ -15,7 +15,7 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 
-WORKDIR bertron/detectron2
+WORKDIR detectron2
 RUN pip3 install -e .
 WORKDIR ../..
 
