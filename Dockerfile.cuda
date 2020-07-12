@@ -1,4 +1,4 @@
-FROM nvidia/cuda:latest
+FROM nvcr.io/nvidia/pytorch:20.06-py3
 
 RUN apt update
 RUN apt install -y build-essential git python3 python3-pip wget libsndfile1 libsm6 libxext6 libxrender-dev
@@ -14,12 +14,6 @@ RUN pip3 install -r requirements.txt
 
 RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
-
-WORKDIR ..
-RUN git clone https://github.com/NVIDIA/apex
-WORKDIR apex
-RUN pip3 install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-WORKDIR ..
 
 WORKDIR bertron/detectron2
 RUN pip3 install -e .
