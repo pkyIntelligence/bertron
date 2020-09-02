@@ -20,6 +20,7 @@ from flask import Flask, request, render_template
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 config_path = sys.argv[1]
+device_str = sys.argv[2]
 
 with open(config_path) as f:
     config_json = json.load(f)
@@ -34,7 +35,7 @@ bertron = Bertron(detector_cfg_path=config_json["detectron_config_path"],
                   waveglow_cfg_path=config_json["waveglow_config_path"],
                   waveglow_weights_path=config_json["waveglow_weights_path"],
                   cpu_device=torch.device("cpu"),
-                  gpu_device=None,
+                  gpu_device=torch.device("cuda") if device_str == "gpu" else None,
                   sampling_rate=sampling_rate)
 
 # Define Flask app
