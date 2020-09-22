@@ -153,12 +153,12 @@ class Captioner:
             attn_mask = attn_mask.unsqueeze(0)
 
             if self.gpu_device:
-                vis_feats.to(self.gpu_device)
-                vis_pe.to(self.gpu_device)
-                input_ids.to(self.gpu_device)
-                segment_ids.to(self.gpu_device)
-                position_ids.to(self.gpu_device)
-                attn_mask.to(self.gpu_device)
+                vis_feats = vis_feats.to(self.gpu_device)
+                vis_pe = vis_pe.to(self.gpu_device)
+                input_ids = input_ids.to(self.gpu_device)
+                segment_ids = segment_ids.to(self.gpu_device)
+                position_ids = position_ids.to(self.gpu_device)
+                attn_mask = attn_mask.to(self.gpu_device)
 
             traces = self.bert_decoder(vis_feats=vis_feats, vis_pe=vis_pe, input_ids=input_ids,
                                        token_type_ids=segment_ids, position_ids=position_ids, attention_mask=attn_mask,

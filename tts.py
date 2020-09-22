@@ -7,6 +7,12 @@ from tacotron2.text import text_to_sequence
 
 from tacotron2.waveglow.glow import WaveGlow
 
+# Hack to load from python 2.7 models
+from functools import partial
+import pickle
+pickle.load = partial(pickle.load, encoding="latin1")
+pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
+
 from data_utils import *
 
 
@@ -26,12 +32,12 @@ class TTS:
         self.device = device
 
         self.tacotron = load_model(hparams, device)
-        self.tacotron.load_state_dict(torch.load(tacotron_weights_path, map_location=device)['state_dict'])
+        self.tacotron.load_state_dict(torch.load(tacotron_weights_path, map_location=device, pickle_module=pickle)['state_dict'])
 
         if device.type == "cpu":
             self.tacotron.cpu()
         else:
-            self.tacotron.half()  # GPU can handle half
+            self.tacotron.half().cuda()  # GPU can handle half
 
         self.tacotron.eval()
 
@@ -43,7 +49,7 @@ class TTS:
 
         self.waveglow.load_state_dict(torch.load(waveglow_weights_path, map_location=device))
 
-        if device.type == "gpu":
+        if device.type == "cuda":
             self.waveglow.cuda().half()
 
         self.waveglow.eval()
@@ -66,8 +72,8 @@ class TTS:
             sequence = np.array(text_to_sequence(text, ['english_cleaners']))[None, :]
             sequence = torch.autograd.Variable(torch.from_numpy(sequence)).long()
 
-            if self.device.type == "gpu":
-                sequence.cuda()
+            if self.device.type == "cuda":
+                sequence = sequence.cuda()
 
             mel_outputs, mel_outputs_postnet, _, alignments = self.tacotron.inference(sequence)
 
