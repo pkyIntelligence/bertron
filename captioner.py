@@ -14,6 +14,11 @@ from VLP.pytorch_pretrained_bert.tokenization import BertTokenizer
 
 from data_utils import *
 
+# Hack to load from python 2.7 models
+from functools import partial
+import pickle
+pickle.load = partial(pickle.load, encoding="latin1")
+pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
 
 class Captioner:
     """
@@ -54,7 +59,7 @@ class Captioner:
         self.max_input_len = max_caption_length + self.max_detections + 3  # +3 for 2x[SEP] and [CLS]
         self.bert_cfg = BertConfig.from_json_file(bert_cfg_path)
 
-        bert_state_dict = torch.load(bert_weights_path)
+        bert_state_dict = torch.load(bert_weights_path, pickle_module=pickle)
         self.tokenizer = BertTokenizer.from_pretrained(self.bert_cfg.bert_model)
         self.bert_cfg.vocab_size = len(self.tokenizer.vocab)
         mask_word_id, eos_id = self.tokenizer.convert_tokens_to_ids(["[MASK]", "[SEP]"])
