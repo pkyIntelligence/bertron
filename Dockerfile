@@ -1,28 +1,23 @@
-FROM pytorch/pytorch:1.4-cuda10.1-cudnn7-devel
+FROM ubuntu:18.04
 
 RUN apt update
 RUN apt install -y build-essential git python3 python3-pip wget libsndfile1 libsm6 libxext6 libxrender-dev
 
-RUN pip install --upgrade setuptools pip
+RUN pip3 install --upgrade setuptools pip
 
 RUN mkdir git
 WORKDIR git
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 
 WORKDIR bertron
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
-RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
-RUN pip install git+https://github.com/flauted/coco-caption.git@python23
-
-WORKDIR ..
-RUN git clone https://github.com/NVIDIA/apex
-WORKDIR apex
-RUN pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
+RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
 
 WORKDIR bertron/detectron2
-RUN pip install -e .
+RUN pip3 install -e .
 WORKDIR ../..
 
 WORKDIR bertron/tacotron2
@@ -52,8 +47,8 @@ RUN mv model.19.bin model_weights/bert
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA" -O tacotron2_statedict.pt && rm -rf /tmp/cookies.txt
 RUN mv tacotron2_statedict.pt model_weights/tacotron2
 
-RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi" -O fused_wg256ch_statedict.pt && rm -rf /tmp/cookies.txt
-RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
+RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1WsibBTsuRg_SF2Z6L6NFRTT-NjEy1oTx" -O waveglow_256channels_ljs_v2.pt && rm -rf /tmp/cookies.txt
+RUN python3 tacotron2/waveglow/convert_model.py waveglow_256channels_ljs_v2.pt model_weights/waveglow/fused_wg256ch_statedict.pt cpu
+RUN rm waveglow_256channels_ljs_v2.pt
 
-ENTRYPOINT ["python3", "app.py", "config.json", "gpu"]
-
+ENTRYPOINT ["python3", "app.py", "config.json", "cpu"]
