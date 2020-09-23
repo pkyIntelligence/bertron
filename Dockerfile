@@ -50,6 +50,6 @@ RUN mv tacotron2_statedict.pt model_weights/tacotron2
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi" -O fused_wg256ch_statedict.pt && rm -rf /tmp/cookies.txt
 RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
-EXPOSE 5000
+EXPOSE 80
 
 ENTRYPOINT ["python3", "app.py", "config.json", "cpu"]
