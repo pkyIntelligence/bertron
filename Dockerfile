@@ -1,7 +1,8 @@
 FROM ubuntu:18.04
 
 RUN apt update
-RUN apt install -y build-essential git python3 python3-pip wget libsndfile1 libsm6 libxext6 libxrender-dev
+RUN apt install -y build-essential git python3 python3-pip wget libsndfile1 libsm6 libxext6 libxrender-dev apache2
+RUN apt-get install -y libapache2-mod-wsgi-py3 python-dev
 
 RUN pip3 install --upgrade setuptools pip
 
@@ -50,6 +51,20 @@ RUN mv tacotron2_statedict.pt model_weights/tacotron2
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi" -O fused_wg256ch_statedict.pt && rm -rf /tmp/cookies.txt
 RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
+RUN a2enmod wsgi
+
+WORKDIR /var/www
+RUN mkdir BERTron
+WORKDIR BERTron
+RUN mkdir BERTron
+WORKDIR BERTron
+RUN mv -rf ~/bertron/* .
+RUN mv apache/BERTron.conf /etc/apache2/sites-available
+RUN mv apache/bertron.wsgi ..
+
+RUN a2ensite BERTron
+
 EXPOSE 80
 
-ENTRYPOINT ["python3", "app.py", "config.json", "cpu"]
+# ENTRYPOINT ["python3", "app.py", "config.json", "cpu"]
+CMD ["/usr/sbin/apache2", "-D", "FOREGROUND"]
