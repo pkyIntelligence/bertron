@@ -47,7 +47,7 @@ class TTS:
         self.waveglow = WaveGlow(wg_cfg['n_mel_channels'], wg_cfg['n_flows'], wg_cfg['n_group'],
                                  wg_cfg['n_early_every'], wg_cfg['n_early_size'], wg_cfg['WN_config'])
 
-        self.waveglow.load_state_dict(torch.load(waveglow_weights_path, map_location=device))
+        self.waveglow.load_state_dict(torch.load(waveglow_weights_path, map_location=device, pickle_module=pickle))
 
         if device.type == "cuda":
             self.waveglow.cuda().half()
