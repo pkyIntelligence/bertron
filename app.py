@@ -19,8 +19,8 @@ from flask import Flask, request, render_template
 # Set root dir
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-config_path = sys.argv[1]
-device_str = sys.argv[2]
+config_path = 'config.json'
+device_str = 'cpu'
 
 with open(config_path) as f:
     config_json = json.load(f)

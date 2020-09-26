@@ -6,18 +6,11 @@ RUN apt-get install -y libapache2-mod-wsgi-py3 python-dev
 
 RUN pip3 install --upgrade setuptools pip
 
-RUN mkdir git
-WORKDIR git
-RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
-
 WORKDIR /var/www
-RUN mkdir BERTron
-WORKDIR BERTron
-RUN mkdir BERTron
-WORKDIR BERTron
-RUN mv /git/bertron/* .
-RUN mv apache/BERTron.conf /etc/apache2/sites-available
-RUN mv apache/bertron.wsgi ..
+RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
+WORKDIR bertron
+RUN mv apache/bertron.conf /etc/apache2/sites-available
+RUN mv apache/* .
 RUN mkdir static
 
 RUN pip3 install -r requirements.txt
@@ -56,9 +49,10 @@ RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=down
 RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
 RUN a2enmod wsgi
-RUN a2ensite BERTron
+RUN a2dissite 000-default
+RUN a2ensite bertron
 
-# EXPOSE 80
+EXPOSE 80
 
 # ENTRYPOINT ["python3", "__init__.py", "config.json", "cpu"]
 # CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
