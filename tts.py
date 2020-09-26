@@ -13,7 +13,7 @@ import pickle
 pickle.load = partial(pickle.load, encoding="latin1")
 pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
 
-from .data_utils import *
+from data_utils import *
 
 
 class TTS:

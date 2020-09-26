@@ -19,11 +19,11 @@ RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=Pyt
 RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
 
-WORKDIR BERTron
+WORKDIR bertron
 RUN python3 -m pip install -e detectron2
 WORKDIR ..
 
-WORKDIR BERTron/tacotron2
+WORKDIR bertron/tacotron2
 RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
 WORKDIR ..
 

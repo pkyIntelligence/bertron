@@ -12,7 +12,7 @@ import sys
 import time
 import validators
 
-from .bertron import Bertron
+from bertron import Bertron
 
 from flask import Flask, request, render_template
 
