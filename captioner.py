@@ -12,7 +12,7 @@ from detectron2.utils.visualizer import ColorMode, SimpleVisualizer
 from VLP.pytorch_pretrained_bert.modeling import BertConfig, BertForSeq2SeqDecoder
 from VLP.pytorch_pretrained_bert.tokenization import BertTokenizer
 
-from data_utils import *
+from .data_utils import *
 
 # Hack to load from python 2.7 models
 from functools import partial

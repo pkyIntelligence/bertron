@@ -10,18 +10,27 @@ RUN mkdir git
 WORKDIR git
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 
-WORKDIR bertron
+WORKDIR /var/www
+RUN mkdir BERTron
+WORKDIR BERTron
+RUN mkdir BERTron
+WORKDIR BERTron
+RUN mv /git/bertron/* .
+RUN mv apache/BERTron.conf /etc/apache2/sites-available
+RUN mv apache/bertron.wsgi ..
+RUN mkdir static
+
 RUN pip3 install -r requirements.txt
 
 RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
 
-WORKDIR bertron/detectron2
-RUN pip3 install -e .
-WORKDIR ../..
+WORKDIR BERTron
+RUN python3 -m pip install -e detectron2
+WORKDIR ..
 
-WORKDIR bertron/tacotron2
+WORKDIR BERTron/tacotron2
 RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
 WORKDIR ..
 
@@ -40,11 +49,6 @@ RUN mv fc7_* model_weights/detectron
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=15DfBnGdAjHs93brAs7roS6Wj7TkCNnzv' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=15DfBnGdAjHs93brAs7roS6Wj7TkCNnzv" -O model.19.bin && rm -rf /tmp/cookies.txt
 RUN mv model.19.bin model_weights/bert
 
-# RUN wget -O coco_g4_lr1e-6_batch64_scst.tar.gz "https://onedrive.live.com/download?cid=E5364FD183A1F5BB&resid=E5364FD183A1F5BB%212027&authkey=ACM1UXlFxgfWyt0"
-# RUN tar -xf coco_g4_lr1e-6_batch64_scst.tar.gz
-# RUN mv coco_g4_lr1e-6_batch64_scst/model.19.bin model_weights/bert
-# RUN rm -rf coco_g4_lr1e-6_batch64_scst*
-
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1c5ZTuT7J08wLUoVZ2KkUs_VdZuJ86ZqA" -O tacotron2_statedict.pt && rm -rf /tmp/cookies.txt
 RUN mv tacotron2_statedict.pt model_weights/tacotron2
 
@@ -52,19 +56,9 @@ RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=down
 RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
 RUN a2enmod wsgi
-
-WORKDIR /var/www
-RUN mkdir BERTron
-WORKDIR BERTron
-RUN mkdir BERTron
-WORKDIR BERTron
-RUN mv -rf ~/bertron/* .
-RUN mv apache/BERTron.conf /etc/apache2/sites-available
-RUN mv apache/bertron.wsgi ..
-
 RUN a2ensite BERTron
 
-EXPOSE 80
+# EXPOSE 80
 
-# ENTRYPOINT ["python3", "app.py", "config.json", "cpu"]
-CMD ["/usr/sbin/apache2", "-D", "FOREGROUND"]
+# ENTRYPOINT ["python3", "__init__.py", "config.json", "cpu"]
+# CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]

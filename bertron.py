@@ -1,7 +1,7 @@
 import torch
 
-from captioner import Captioner
-from tts import TTS
+from .captioner import Captioner
+from .tts import TTS
 
 
 class Bertron:
