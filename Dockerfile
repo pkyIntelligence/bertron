@@ -16,18 +16,6 @@ RUN mv apache/bertron.conf /etc/apache2/sites-available
 RUN mv apache/* .
 RUN mkdir static
 
-RUN pip3 install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
-RUN pip3 install git+https://github.com/flauted/coco-caption.git@python23
-WORKDIR ..
-
-WORKDIR bertron
-RUN python3 -m pip install -e detectron2
-WORKDIR ..
-
-WORKDIR bertron/tacotron2
-RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
-WORKDIR ..
-
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1qQyaTBAUW8T4slkdO73ywfsUOxuJCmZI' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1qQyaTBAUW8T4slkdO73ywfsUOxuJCmZI" -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl && rm -rf /tmp/cookies.txt
 
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1S_PE0CZkq1TLlYji9bovboUYztVgAEzM' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1S_PE0CZkq1TLlYji9bovboUYztVgAEzM" -O fc7_b.pkl && rm -rf /tmp/cookies.txt
@@ -51,6 +39,22 @@ RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
 RUN a2dissite 000-default
 RUN a2ensite bertron
+
+SHELL ["conda", "run", "-n", "bertron", "/bin/bash", "-c"]
+
+RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
+RUN pip install git+https://github.com/flauted/coco-caption.git@python23
+WORKDIR ..
+
+WORKDIR bertron
+RUN python3 -m pip install -e detectron2
+WORKDIR ..
+
+WORKDIR bertron/tacotron2
+RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
+WORKDIR ..
+
+RUN conda install -c conda-forge librosa
 
 EXPOSE 80
 
