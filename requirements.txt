@@ -54,7 +54,7 @@ jupyter-core==4.6.1
 Keras-Applications==1.0.8
 Keras-Preprocessing==1.1.0
 kiwisolver==1.1.0
-librosa==0.7.2
+librosa
 llvmlite==0.31.0
 Markdown==3.1.1
 MarkupSafe==1.1.1
@@ -64,7 +64,7 @@ mkl
 nbconvert==5.6.1
 nbformat==5.0.4
 notebook==6.0.3
-numba==0.48.0
+numba
 numpy==1.18.1
 olefile==0.46
 opencv-python==4.2.0.32
