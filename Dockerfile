@@ -6,6 +6,8 @@ RUN apt-get install -y libapache2-mod-wsgi-py3
 
 RUN a2enmod wsgi
 
+RUN conda update -n base -c defaults conda 
+
 WORKDIR /var/www/html
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 WORKDIR bertron
