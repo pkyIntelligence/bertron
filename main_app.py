@@ -19,21 +19,21 @@ from flask import Flask, request, render_template
 # Set root dir
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-config_path = 'config.json'
+config_path = os.path.join(APP_ROOT, 'config.json')
 device_str = 'cpu'
 
 with open(config_path) as f:
     config_json = json.load(f)
 
 sampling_rate = config_json["sampling_rate"]
-bertron = Bertron(detector_cfg_path=config_json["detectron_config_path"],
-                  detector_weights_path=config_json["detectron_weights_path"],
-                  bert_cfg_path=config_json["bert_config_path"],
-                  bert_weights_path=config_json["bert_weights_path"],
-                  object_vocab_path=config_json["object_vocab_path"],
-                  tacotron_weights_path=config_json["tacotron_weights_path"],
-                  waveglow_cfg_path=config_json["waveglow_config_path"],
-                  waveglow_weights_path=config_json["waveglow_weights_path"],
+bertron = Bertron(detector_cfg_path=os.path.join(APP_ROOT, config_json["detectron_config_path"]),
+                  detector_weights_path=os.path.join(APP_ROOT, config_json["detectron_weights_path"]),
+                  bert_cfg_path=os.path.join(APP_ROOT, config_json["bert_config_path"]),
+                  bert_weights_path=os.path.join(APP_ROOT, config_json["bert_weights_path"]),
+                  object_vocab_path=os.path.join(APP_ROOT, config_json["object_vocab_path"]),
+                  tacotron_weights_path=os.path.join(APP_ROOT, config_json["tacotron_weights_path"]),
+                  waveglow_cfg_path=os.path.join(APP_ROOT, config_json["waveglow_config_path"]),
+                  waveglow_weights_path=os.path.join(APP_ROOT, config_json["waveglow_weights_path"]),
                   cpu_device=torch.device("cpu"),
                   gpu_device=torch.device("cuda") if device_str == "gpu" else None,
                   sampling_rate=sampling_rate)
