@@ -100,8 +100,14 @@ class Captioner:
                 img = np.array(Image.open(BytesIO(response.content)))[:, :, ::-1]
             else:  # Assume it's a file path
                 img = read_image(img, format="BGR")
+            channels = img.shape[2]
+            if channels > 3:  # Assume last 3 channels are BGR
+                img = img[:, :, channels - 3:]
             pred = self.detector_predictor([img])[0]
         else:  # Assume it's an image object
+            channels = img.shape[2]
+            if channels > 3:  # Assume last 3 channels are BGR
+                img = img[:, :, channels - 3:]
             pred = self.detector_predictor([img])[0]
 
         self.img_cache = img
@@ -133,6 +139,10 @@ class Captioner:
                     img = np.array(Image.open(BytesIO(response.content)))[:, :, ::-1]
                 else:  # Assume file path
                     img = read_image(img, format="BGR")
+
+            channels = img.shape[2]
+            if channels > 3:  # Assume last 3 channels are BGR
+                img = img[:, :, channels-3:]
 
             pred = self.detector_predictor([img])[0]
             self.img_cache = img
