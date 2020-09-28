@@ -172,6 +172,7 @@ dependencies:
     - googleapis-common-protos==1.51.0
     - ipdb==0.12.3
     - joblib==0.14.1
+    - librosa==0.7.2
     - llvmlite==0.31.0
     - numba==0.48.0
     - opencv-python==4.2.0.32
