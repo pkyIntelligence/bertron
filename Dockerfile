@@ -2,7 +2,7 @@ FROM continuumio/miniconda3
 
 RUN apt update
 RUN apt install -y build-essential git wget libsndfile1 libsm6 libxext6 libxrender-dev apache2
-RUN apt-get install -y libapache2-mod-wsgi-py3
+RUN apt-get install -y libapache2-mod-wsgi-py3 nano
 
 RUN a2enmod wsgi
 
@@ -69,5 +69,3 @@ USER root
 
 EXPOSE 80
 
-ENTRYPOINT ["service", "apache2", "restart"]
-# CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
