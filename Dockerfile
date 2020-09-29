@@ -6,14 +6,20 @@ RUN apt-get install -y libapache2-mod-wsgi-py3
 
 RUN a2enmod wsgi
 
-RUN conda update -n base -c defaults conda 
+RUN conda update -n base -c defaults conda
 
-WORKDIR /var/www/html
+RUN useradd -ms /bin/bash wsgi-user
+
+USER wsgi-user
+
+WORKDIR /home/wsgi-user
+RUN mkdir git
+WORKDIR git
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 WORKDIR bertron
 RUN conda env create -f bertron_env.yml
-RUN mv apache/bertron.conf /etc/apache2/sites-available
-RUN mv apache/* .
+RUN mv apache/__init__.py .
+RUN mv apache/bertron.wsgi .
 RUN mkdir static
 
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1qQyaTBAUW8T4slkdO73ywfsUOxuJCmZI' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1qQyaTBAUW8T4slkdO73ywfsUOxuJCmZI" -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl && rm -rf /tmp/cookies.txt
@@ -37,8 +43,13 @@ RUN mv tacotron2_statedict.pt model_weights/tacotron2
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OwxZ6YAIlnfGftcSK0a24fwD2XGhZfSi" -O fused_wg256ch_statedict.pt && rm -rf /tmp/cookies.txt
 RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
+USER root
+
+RUN mv apache/bertron.conf /etc/apache2/sites-available
 RUN a2dissite 000-default
 RUN a2ensite bertron
+
+USER wsgi-user
 
 SHELL ["conda", "run", "-n", "bertron", "/bin/bash", "-c"]
 
@@ -54,9 +65,9 @@ WORKDIR bertron/tacotron2
 RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
 WORKDIR ..
 
-RUN conda install -c conda-forge librosa
+USER root
 
 EXPOSE 80
 
-# ENTRYPOINT ["python3", "__init__.py", "config.json", "cpu"]
+ENTRYPOINT ["service", "apache2", "restart"]
 # CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
