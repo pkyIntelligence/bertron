@@ -19,7 +19,7 @@ RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.gi
 WORKDIR bertron
 RUN conda env create -f bertron_env.yml
 RUN mv apache/__init__.py .
-RUN mv apache/bertron.wsgi .
+RUN mv apache/*.wsgi .
 RUN mkdir static
 
 RUN wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1qQyaTBAUW8T4slkdO73ywfsUOxuJCmZI' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1qQyaTBAUW8T4slkdO73ywfsUOxuJCmZI" -O e2e_faster_rcnn_X-101-64x4d-FPN_2x-vlp.pkl && rm -rf /tmp/cookies.txt
