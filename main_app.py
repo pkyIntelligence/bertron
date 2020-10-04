@@ -11,10 +11,13 @@ import requests
 import sys
 import time
 import validators
+import tracemalloc
 
 from bertron import Bertron
 
 from flask import Flask, request, render_template
+
+tracemalloc.start()
 
 # Set root dir
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +44,6 @@ bertron = Bertron(detector_cfg_path=os.path.join(APP_ROOT, config_json["detectro
 # Define Flask app
 app = Flask(__name__, static_url_path='/static')
 
-
 # Define apps home page
 @app.route('/')
 def index():
@@ -51,6 +53,7 @@ def index():
 # Define submit function
 @app.route('/submit', methods=['POST'])
 def submit():
+    start_snapshot = tracemalloc.take_snapshot()
     static_dir = os.path.join(APP_ROOT, "static/")
 
     if not os.path.isdir(static_dir):
@@ -101,6 +104,7 @@ def submit():
     ax.set_xlabel("Frames")
     ax.imshow(mel_data[0], origin="lower")
     fig.savefig(os.path.join(static_dir, "mel_outputs.png"))
+    plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(5, 2.5))
     ax.set_title("Mel Spectogram Post-Net")
@@ -108,6 +112,7 @@ def submit():
     ax.set_xlabel("Frames")
     ax.imshow(mel_data[1], origin="lower")
     fig.savefig(os.path.join(static_dir, "mel_outputs_postnet.png"))
+    plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(5, 2.5))
     ax.set_title("Alignment (Attention Map)")
@@ -115,8 +120,16 @@ def submit():
     ax.set_xlabel("Frames")
     ax.imshow(mel_data[2], origin="lower")
     fig.savefig(os.path.join(static_dir, "alignments.png"))
+    plt.close(fig)
 
     torchaudio.save(os.path.join(static_dir, "audio.wav"), audio.float().cpu(), sampling_rate)
+
+    end_snapshot = tracemalloc.take_snapshot()
+    top_stats = end_snapshot.compare_to(start_snapshot, 'lineno')
+
+    print("[ Top 10 differences ]")
+    for stat in top_stats[:10]:
+        print(stat)
 
     return render_template('index.html', generated_audio=True, now=time.time(), visualize=visualize, caption=caption,
                            current_url=image_url, top_n=top_n, denoise=denoise)

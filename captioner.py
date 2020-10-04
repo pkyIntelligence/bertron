@@ -91,7 +91,7 @@ class Captioner:
             img: a path or url to an image file or image object, if None, assume intent is to visualize the last run
             top_n: only show this many top scoring detections, to make it cleaner, captioning still uses top 100.
         """
-        if img is None:
+        if img is not None:
             img = self.img_cache
             pred = self.vis_pred_cache
         elif isinstance(img, str):
