@@ -1,23 +1,17 @@
-import torch
 import torchaudio
 
 from io import BytesIO
-import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from PIL import Image
 import requests
-import sys
 import time
 import validators
-import tracemalloc
 
-from bertron import Bertron
+from factory import create_app
 
-from flask import Flask, request, render_template
-
-tracemalloc.start()
+from flask import request, render_template, current_app
 
 # Set root dir
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -25,24 +19,8 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(APP_ROOT, 'config.json')
 device_str = 'cpu'
 
-with open(config_path) as f:
-    config_json = json.load(f)
-
-sampling_rate = config_json["sampling_rate"]
-bertron = Bertron(detector_cfg_path=os.path.join(APP_ROOT, config_json["detectron_config_path"]),
-                  detector_weights_path=os.path.join(APP_ROOT, config_json["detectron_weights_path"]),
-                  bert_cfg_path=os.path.join(APP_ROOT, config_json["bert_config_path"]),
-                  bert_weights_path=os.path.join(APP_ROOT, config_json["bert_weights_path"]),
-                  object_vocab_path=os.path.join(APP_ROOT, config_json["object_vocab_path"]),
-                  tacotron_weights_path=os.path.join(APP_ROOT, config_json["tacotron_weights_path"]),
-                  waveglow_cfg_path=os.path.join(APP_ROOT, config_json["waveglow_config_path"]),
-                  waveglow_weights_path=os.path.join(APP_ROOT, config_json["waveglow_weights_path"]),
-                  cpu_device=torch.device("cpu"),
-                  gpu_device=torch.device("cuda") if device_str == "gpu" else None,
-                  sampling_rate=sampling_rate)
-
 # Define Flask app
-app = Flask(__name__, static_url_path='/static')
+app = create_app(APP_ROOT, config_path, device_str)
 
 # Define apps home page
 @app.route('/')
@@ -53,7 +31,6 @@ def index():
 # Define submit function
 @app.route('/submit', methods=['POST'])
 def submit():
-    start_snapshot = tracemalloc.take_snapshot()
     static_dir = os.path.join(APP_ROOT, "static/")
 
     if not os.path.isdir(static_dir):
@@ -91,7 +68,7 @@ def submit():
                                top_n=top_n, denoise=denoise, current_url=image_url)
 
     audio, vis_output, caption, mel_outputs, mel_outputs_postnet, alignments = \
-        bertron(img, visualize=visualize, viz_top_n=top_n, denoise=denoise)
+        current_app.bertron(img, visualize=visualize, viz_top_n=top_n, denoise=denoise)
 
     Image.fromarray(vis_output).save(os.path.join(static_dir, "image.jpg"))
 
@@ -122,14 +99,7 @@ def submit():
     fig.savefig(os.path.join(static_dir, "alignments.png"))
     plt.close(fig)
 
-    torchaudio.save(os.path.join(static_dir, "audio.wav"), audio.float().cpu(), sampling_rate)
-
-    end_snapshot = tracemalloc.take_snapshot()
-    top_stats = end_snapshot.compare_to(start_snapshot, 'lineno')
-
-    print("[ Top 10 differences ]")
-    for stat in top_stats[:10]:
-        print(stat)
+    torchaudio.save(os.path.join(static_dir, "audio.wav"), audio.float().cpu(), current_app.sampling_rate)
 
     return render_template('index.html', generated_audio=True, now=time.time(), visualize=visualize, caption=caption,
                            current_url=image_url, top_n=top_n, denoise=denoise)
@@ -137,4 +107,4 @@ def submit():
 
 # Start the application
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, threaded=False)
