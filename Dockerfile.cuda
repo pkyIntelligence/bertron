@@ -48,6 +48,8 @@ RUN a2ensite bertron
 
 USER wsgi-user
 
+RUN pip install torchaudio
+
 RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 RUN pip install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
