@@ -17,10 +17,11 @@ from flask import request, render_template, current_app
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 config_path = os.path.join(APP_ROOT, 'config.json')
-device_str = 'cpu'
+device_str = os.environ.get("BERTRON_DEVICE")
 
 # Define Flask app
 app = create_app(APP_ROOT, config_path, device_str)
+
 
 # Define apps home page
 @app.route('/')
