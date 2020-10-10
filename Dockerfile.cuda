@@ -3,7 +3,7 @@ FROM continuumio/miniconda3
 RUN apt update
 RUN apt-get update
 
-RUN apt install -y build-essential git wget libsndfile1 libsm6 libxext6 libxrender-dev apache2
+RUN apt install -y --fix-missing build-essential git wget libsndfile1 libsm6 libxext6 libxrender-dev apache2
 RUN apt-get install -y libapache2-mod-wsgi-py3 nano
 
 RUN a2enmod wsgi
