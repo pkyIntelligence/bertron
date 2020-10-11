@@ -62,7 +62,7 @@ RUN conda install -c conda-forge cudatoolkit-dev
 ENV CUDA_HOME=/home/wsgi-user/.conda/envs/bertron
 
 WORKDIR bertron
-RUN python3 -m pip install -e detectron2
+RUN python -m pip install -e detectron2
 WORKDIR ..
 
 WORKDIR bertron/tacotron2
