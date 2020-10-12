@@ -59,8 +59,8 @@ WORKDIR ..
 
 RUN conda install -c conda-forge cudatoolkit-dev
 
-RUN export CUDA_HOME=/home/wsgi-user/.conda/envs/bertron
-RUN export FORCE_CUDA=1
+ENV CUDA_HOME=/home/wsgi-user/.conda/envs/bertron
+ENV FORCE_CUDA=1
 
 WORKDIR bertron
 RUN python3 -m pip install -e detectron2
