@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-devel
+FROM nvidia/cuda:10.2-cudnn7-devel
 
 RUN apt update
 RUN apt install -y build-essential git wget libsndfile1 libsm6 libxext6 libxrender-dev apache2
