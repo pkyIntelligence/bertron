@@ -57,17 +57,17 @@ WORKDIR ..
 
 # RUN conda install -c conda-forge cudatoolkit-dev
 
-# ENV CUDA_HOME=/home/wsgi-user/.conda/envs/bertron
-# ENV FORCE_CUDA="1"
+ENV CUDA_HOME=/usr/local/cuda
+ENV FORCE_CUDA="1"
 # ENV TORCH_CUDA_ARCH_LIST="Maxwell;Maxwell+Tegra;Pascal;Volta;Turing"
 
-# WORKDIR bertron
-# RUN python3 -m pip install -e detectron2
-# WORKDIR ..
+WORKDIR bertron
+RUN python3 -m pip install -e detectron2
+WORKDIR ..
 
-# WORKDIR bertron/tacotron2
-# RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
-# WORKDIR ..
+WORKDIR bertron/tacotron2
+RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
+WORKDIR ..
 
 USER root
 
