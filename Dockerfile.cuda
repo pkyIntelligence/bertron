@@ -57,7 +57,7 @@ RUN pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=Pyth
 RUN pip install git+https://github.com/flauted/coco-caption.git@python23
 WORKDIR ..
 
-RUN conda install -c conda-forge cudatoolkit-dev
+RUN conda install -c conda-forge cudatoolkit-dev=10.2
 
 ENV CUDA_HOME=/home/wsgi-user/.conda/envs/bertron
 ENV FORCE_CUDA=1
