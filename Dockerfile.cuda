@@ -14,7 +14,7 @@ WORKDIR /home/wsgi-user
 RUN mkdir git
 WORKDIR git
 # dummy command to skip cache
-# RUN pwd
+RUN pwd
 RUN git clone --recurse-submodules https://github.com/pkyIntelligence/bertron.git
 WORKDIR bertron
 RUN pip install -r requirements.txt
