@@ -2,6 +2,7 @@ from flask import Flask
 from bertron import Bertron
 import json
 import os
+import threading
 import torch
 
 
@@ -30,5 +31,6 @@ def create_app(app_root, config_path, device_str):
                           gpu_device=torch.device("cuda") if device_str == "gpu" else None,
                           sampling_rate=sampling_rate)
     app.sampling_rate = sampling_rate
+    app.bertron_lock = threading.Lock()
 
     return app

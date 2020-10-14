@@ -37,10 +37,7 @@
                 <input type="checkbox" id="visualize" name="visualize" value="visualize"
                     {% if visualize %}checked{% else %}{% endif %}>
                 <label for="top_n">Number of Detections to visualize (100 or less):</label>
-                <input type="number" id="top_n" name="top_n" min="0" max="100" value={{top_n}}>
-                <label for="denoise">Denoise?</label>
-                <input type="checkbox" id="denoise" name="denoise" value="denoise"
-                    {% if denoise %}checked{% else %}{% endif %}><br>
+                <input type="number" id="top_n" name="top_n" min="0" max="100" value={{top_n}}><br>
                 <input type="submit" value="Analyze" id="submit_button">
             </div>
         </form><br>
@@ -54,17 +51,16 @@
             <h4>Sorry, that URL could not be interpreted as an image.</h4>
         {% endif %}
         {% if generated_audio %}
-            <img src={{url_for('static', filename="image.jpg", time=now)}} class="center"><br>
+            <img src={{url_for('static', filename=image_filename, time=now)}} class="center"><br>
             {% if visualize %}
                 <h4>{{caption}}</h4><br>
                 <div class="container">
-                    <img src={{url_for('static', filename="mel_outputs.png", time=now)}}>
-                    <img src={{url_for('static', filename="mel_outputs_postnet.png", time=now)}}>
-                    <img src={{url_for('static', filename="alignments.png", time=now)}}>
+                    <img src={{url_for('static', filename=mel_outputs_postnet_filename, time=now)}}>
+                    <img src={{url_for('static', filename=alignments_filename, time=now)}}>
                 </div><br>
             {% endif %}
             <audio controls>
-                <source src={{url_for('static', filename="audio.wav", time=now)}} type="audio/wav">
+                <source src={{url_for('static', filename=audio_filename, time=now)}} type="audio/wav">
                 Your browser does not support the audio element.
             </audio>
         {% endif %}
