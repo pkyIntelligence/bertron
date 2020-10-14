@@ -45,7 +45,8 @@ RUN mv fused_wg256ch_statedict.pt model_weights/waveglow
 
 USER root
 
-RUN mv apache/bertron.conf /etc/apache2/sites-available
+RUN cp apache/bertron_gpu.conf /etc/apache2/sites-available
+RUN mv /etc/apache2/sites-available/bertron_gpu.conf /etc/apache2/sites-available/bertron.conf
 RUN a2dissite 000-default
 RUN a2ensite bertron
 
@@ -68,8 +69,6 @@ RUN sed -i -- 's,DUMMY,ljs_dataset_folder/wavs,g' filelists/*.txt
 WORKDIR ..
 
 USER root
-
-ENV BERTRON_DEVICE=gpu
 
 EXPOSE 80
 
