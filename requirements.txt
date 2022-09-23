@@ -51,7 +51,7 @@ pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==6.2.2
 portalocker==1.5.2
-protobuf==3.13.0
+protobuf==3.18.3
 psutil==5.7.2
 ptyprocess==0.6.0
 pyasn1==0.4.8
